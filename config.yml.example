@@ -1,0 +1,15 @@
+# NZT-48 configuration
+# Copy to config.yml — install.sh does this automatically
+
+user:
+  name: "User"                    # your name, used in prompts and brief header
+  vault: "~/Documents/Notes"      # path to your Obsidian vault (auto-detected)
+  brief_time: "09:00"             # morning brief time (24h)
+  profile: "freelancer"           # freelancer | developer | student | other
+
+monitoring:
+  enabled: true
+  interval_minutes: 30
+  window_start: "08:00"
+  window_end: "20:30"
+  max_per_day: 2
