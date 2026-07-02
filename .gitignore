@@ -1,0 +1,12 @@
+.env
+*.db
+*.db-shm
+*.db-wal
+logs/
+queue/
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.DS_Store
+config.yml
