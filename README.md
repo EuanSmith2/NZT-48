@@ -19,9 +19,13 @@
 
 ---
 
-NZT-48 is a personal AI OS built by Euan Smith. It runs 24/7 on your machine, briefs you every morning, monitors your pipeline, writes your emails, and routes every request through the cheapest model that can handle it — local Gemma for quick tasks, Claude Code headless for the heavy stuff. €0 per message at scale. It adapts to whoever's running it after a 3-question install.
+This repo just slipped Claude the NZT-48 pill and now your AI intern is absolutely ZOOTED.
 
-This is not a chatbot. It's infrastructure.
+NZT-48 is the personal AI OS that runs 24/7 like that one over-caffeinated, Adderall-fueled intern who never sleeps, never forgets, and actually gets shit done. (Built by Euan Smith)
+
+It wakes up before you, briefs you every morning like a standing desk standup, watches your whole pipeline, writes your emails, and hits you on Telegram like a real human.
+
+You can straight up message this thing from anywhere, phone, Mac, iOS, whatever, and it just does the thing you ask, no pushback or waffle. Native with your Calendar, Alarms, Mail, reminders, the whole human workflow. No weird chatbot lag. It feels like texting your smartest (and most unhinged) employee. (think The Social Network + Mr.Robot on speed-dail)
 
 ---
 
@@ -65,17 +69,20 @@ WAITING ON
 
 ## What's in it
 
-**Daily Brief** — 09:00 every morning. Priorities, deadlines, pipeline, news. Reads standing up, in 60 seconds.
 
-**Smart Router** — classifies every request. Local Gemma handles quick Q&A. Claude Code headless takes the complex stuff. Score 5 tasks queue to your next interactive session. Nothing gets dropped.
+Daily Brief at 09:00 — Priorities, deadlines, pipeline updates, relevant news. Reads like a 60-second hype reel. You’re caught up before your coffee’s even hot.
 
-**7 Agents** — Research, Business, Learning, Memory, Pre-call, Briefing, Task. Each prompt-tuned for its job.
+Smart Router — Figures out what needs what. Quick stuff runs on local Gemma. Heavy lifting goes to Claude Code headless. Everything gets queued like a pro. Nothing falls through the cracks.
 
-**5 Monitors** — background watchers that nudge you when something needs attention. Max 2 per day. No noise.
+7 Agents — Research gremlin, Business dude, Learning mode, Memory vault, Pre-call prep, Briefing beast, Task destroyer. Each one prompt-tuned and locked in.
 
-**Vault Memory** — reads your Obsidian vault. Your notes, projects, and people are the context layer — not the model's generic defaults.
+5 Monitors — Silent background watchers. They only ping you when it actually matters (max 2 nudges a day, no spam).
 
-**Telegram Native** — message it like a person. Commands or plain text. Always on.
+Vault Memory — Eats your entire Obsidian vault. Your real notes, projects, and people become the context. No more generic corporate AI slop. (or getting dumber from long convos)
+
+Telegram Native — Text it like a person. Commands or normal chat. Always on, always ready.
+
+Zero € per message at scale. Runs on your machine. Adapts to you after a dead-simple 3-question setup. (becuase fck subscription based services)
 
 ---
 
@@ -123,4 +130,5 @@ Built by [Euan Smith](https://euansmith.net) · [GitHub Sponsors](https://github
 
 *"It's not that I'm smarter. I just use more of my brain."*
 
+**Clone it. Install it. Give your AI the pill and watch it start cooking.**
 </div>
