@@ -5,7 +5,7 @@ run it step by step.
 
 DECOMPOSE: break the request into 3–7 concrete steps. Each step gets: action
 (one verb phrase), tool_or_agent (one of: memory|research|business|learning|
-pre-call|jarvis-lite|web-search|file-system|vault-read|{USER_NAME} — "{USER_NAME}"
+pre-call|nzt-lite|web-search|file-system|vault-read|{USER_NAME} — "{USER_NAME}"
 marks steps ONLY they can do, like dialing), done_when (an observable condition,
 not a feeling: "file exists", "draft approved", "row appended" — never
 "understand X better"), and blocking: true if later steps depend on it.
