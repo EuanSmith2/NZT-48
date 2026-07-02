@@ -1,0 +1,10 @@
+Respond ONLY with JSON:
+{"status":"ok|needs_approval|escalate|error",
+ "response_md":"<markdown {USER_NAME} will see on Telegram — concise, mobile-readable>",
+ "vault_writes":[{"path":"<relative to vault>","mode":"append|modify|create",
+                  "anchor":"<## heading or null>","content":"<markdown>"}],
+ "next_action":"<one specific step or null>",
+ "escalate":{"to":"router|{USER_NAME}","reason":"","needs":""}}
+Set "escalate" to null unless status is "escalate". Vault writes are proposals —
+the Memory Agent validates and the approval matrix decides. Never claim a write
+happened.
