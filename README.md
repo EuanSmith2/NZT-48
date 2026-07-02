@@ -119,7 +119,7 @@ That's it.
 
 <div align="center">
 
-Built by [Euan Smith](https://github.com/EuanSmith2) · [GitHub Sponsors](https://github.com/sponsors/EuanSmith2) · MIT
+Built by [Euan Smith](https://euansmith.net) · [GitHub Sponsors](https://github.com/sponsors/EuanSmith2) · MIT · [business.euan@hotmail.com](mailto:business.euan@hotmail.com)
 
 *"It's not that I'm smarter. I just use more of my brain."*
 
