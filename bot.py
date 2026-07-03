@@ -20,6 +20,7 @@ from config import TELEGRAM_TOKEN, TELEGRAM_USER_ID, USER_NAME
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s %(name)s %(levelname)s %(message)s")
+logging.getLogger("httpx").setLevel(logging.WARNING)  # suppress token-bearing URLs
 log = logging.getLogger("nzt-48")
 
 
