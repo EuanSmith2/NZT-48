@@ -30,7 +30,7 @@ BG  = "#0a0a0a"  # background
 BG2 = "#0d0d0d"  # card background
 YEL = "#f0b429"  # warning
 RED = "#ff5f57"  # error
-GRY = "#444"     # muted text
+GRY = "#444444"  # muted text
 
 # ── CSS ──────────────────────────────────────────────────────────────────────
 CSS = f"""
