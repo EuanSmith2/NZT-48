@@ -89,7 +89,7 @@ def set_summary(upto: int, text: str):
 
 
 # --- single-backend lock (A.6-2): one generation backend at a time ---
-LOCK_STALE_S = 120
+LOCK_STALE_S = 300  # must exceed cc_client max timeout (240s)
 
 
 def acquire_lock(holder: str, wait_s: float = 30) -> bool:

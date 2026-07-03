@@ -78,10 +78,18 @@ PROTECTED_PREFIXES = ("03-PEOPLE/", "01-PROFILE/", "02-GOALS/")
 
 
 def needs_gate(write: dict) -> bool:
-    """B.4 approval matrix."""
+    """B.4 approval matrix. Normalise the path first so ../ tricks can't bypass
+    protected prefix checks — the actual write will also be blocked by
+    vault_write's resolve() guard, but we gate here too as defence-in-depth."""
     if write.get("mode") == "modify":
         return True
-    return str(write.get("path", "")).startswith(PROTECTED_PREFIXES)
+    try:
+        from config import VAULT
+        normalised = str((VAULT / write.get("path", "")).resolve()
+                         .relative_to(VAULT.resolve()))
+    except (ValueError, Exception):
+        return True  # can't normalise → treat as gated
+    return normalised.startswith(PROTECTED_PREFIXES)
 
 
 def apply_writes(writes: list[dict]) -> tuple[list[str], list[dict]]:

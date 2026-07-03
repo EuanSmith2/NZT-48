@@ -177,7 +177,14 @@ def vault_list() -> list[str]:
 
 def vault_write(rel_path: str, mode: str, content: str, anchor: str | None = None) -> str:
     """Direct write op — call ONLY after the approval matrix has decided (B.4)."""
-    p = VAULT / rel_path
+    # Resolve first — rejects ../ traversal and absolute paths from model JSON
+    try:
+        target = (VAULT / rel_path).resolve()
+    except Exception as e:
+        raise ValueError(f"invalid path: {e}")
+    if not target.is_relative_to(VAULT.resolve()):
+        raise ValueError(f"path escapes vault: {rel_path!r}")
+    p = target
     p.parent.mkdir(parents=True, exist_ok=True)
     if mode == "create":
         if p.exists():

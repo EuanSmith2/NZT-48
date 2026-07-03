@@ -141,6 +141,9 @@ async def dispatch(update: Update, message: str, route: dict):
     if route["intent"] == "CLARIFY":
         a, b = (route["candidates"] + ["CHAT", "CAPTURE"])[:2]
         reply = f"two ways to take that — ({a.lower()}) or ({b.lower()})? one word."
+        # Store original message so the answer can re-route it correctly
+        state.kv_set("clarify_original", message)
+        state.kv_set("clarify_candidates", json.dumps(route["candidates"]))
     elif route.get("queue"):
         # score 5 / TASK: too heavy for headless — flag to interactive Claude Code
         reply = cc_client.queue_task(message, route["reason"])
@@ -236,6 +239,25 @@ async def on_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if not authed(update):
         return
     message = update.message.text.strip()
+
+    # CLARIFY resolution: if previous turn asked for disambiguation, use the
+    # one-word answer to pick the intent and re-route the original message
+    clarify_original = state.kv_get("clarify_original")
+    if clarify_original:
+        state.kv_set("clarify_original", "")
+        candidates = json.loads(state.kv_get("clarify_candidates") or '["CHAT","CAPTURE"]')
+        state.kv_set("clarify_candidates", "")
+        answer = message.strip().lower()
+        chosen = candidates[0]
+        for c in candidates:
+            if c.lower().startswith(answer[:4]) or answer.startswith(c.lower()[:4]):
+                chosen = c
+                break
+        resolved_route = router.classify(clarify_original)
+        resolved_route["intent"] = chosen.upper()
+        resolved_route["agent"] = router.AGENT_FOR_INTENT.get(chosen.upper())
+        await dispatch(update, clarify_original, resolved_route)
+        return
 
     rework_id = state.kv_get("rework_draft")
     if rework_id:
