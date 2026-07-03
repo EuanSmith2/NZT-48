@@ -62,7 +62,11 @@ def parse_envelope(raw: str) -> dict:
 def run(agent: str, message: str, context: str, tier: str = "cc",
         extra: str = "") -> dict:
     system = assemble(agent)
-    user = f"{context}\n\n{extra}\n\n{USER_NAME}: {message}".strip()
+    search_block = ""
+    if agent == "research":
+        import brave_search
+        search_block = brave_search.search(message)
+    user = f"{context}\n\n{search_block}\n\n{extra}\n\n{USER_NAME}: {message}".strip()
     raw = cc_client.run(user, system=system, model="sonnet",
                         allowed_tools="Read,Glob,Grep", max_turns=12)
     env = parse_envelope(raw)

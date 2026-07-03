@@ -56,6 +56,10 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "")
 TELEGRAM_USER_ID = int(os.getenv("TELEGRAM_USER_ID") or "0")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 BRAVE_API_KEY = os.getenv("BRAVE_API_KEY", "")
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp-mail.outlook.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT") or "587")
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASS = os.getenv("SMTP_PASS", "")
 
 # token budgets
 BUDGET = {"local": 800, "cc": 3000, "sonnet": 3000, "fable": 6000}

@@ -68,8 +68,12 @@ async def handle_envelope(update: Update, env: dict):
         lines.append(f"\n▶️ next: {na}")
     await send(update, "\n".join(filter(None, lines)))
 
+    if env.get("email_draft"):
+        ed = env["email_draft"]
+        preview = f"📧 to: {ed.get('to')}\nsubject: {ed.get('subject')}\n\n{ed.get('body','')}"
+        did = state.save_draft("email", preview, ed)
+        await send(update, f"{preview}\n\napprove to send?", markup=_gate_markup(did))
     if env.get("status") == "needs_approval" and not gated:
-        # draft (email/DM) approval — content is the response itself
         did = state.save_draft("draft", env.get("response_md", ""), {})
         await send(update, "approve this draft?", markup=_gate_markup(did))
     for w in gated:
@@ -108,6 +112,11 @@ async def on_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
                 await q.edit_message_text(f"✅ {result}")
             except (ValueError, OSError) as e:
                 await q.edit_message_text(f"⚠️ failed: {e}")
+        elif draft["kind"] == "email":
+            import emailer
+            p = draft["payload"]
+            result = emailer.send(p.get("to", ""), p.get("subject", ""), p.get("body", ""))
+            await q.edit_message_text(f"✅ email {result}")
         else:
             await q.edit_message_text(f"✅ final — copy below:\n\n{draft['content']}")
         state.set_draft_status(int(did), "approved")
