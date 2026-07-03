@@ -1,30 +1,19 @@
-"""Brave Search API wrapper — used by the research agent for live web results."""
-import httpx
-from config import BRAVE_API_KEY
+"""Web search via DuckDuckGo — no key, no account, completely free."""
 
 
 def search(query: str, n: int = 5) -> str:
-    if not BRAVE_API_KEY:
-        return "[brave search: BRAVE_API_KEY not set]"
     try:
-        r = httpx.get(
-            "https://api.search.brave.com/res/v1/web/search",
-            params={"q": query, "count": n, "text_decorations": False},
-            headers={"Accept": "application/json",
-                     "X-Subscription-Token": BRAVE_API_KEY},
-            timeout=10,
-        )
-        r.raise_for_status()
-        results = r.json().get("web", {}).get("results", [])
+        from ddgs import DDGS
+        results = list(DDGS().text(query, max_results=n))
         if not results:
-            return f"[brave search: no results for '{query}']"
-        lines = [f"BRAVE SEARCH — {query}"]
-        for i, res in enumerate(results, 1):
+            return f"[search: no results for '{query}']"
+        lines = [f"WEB SEARCH — {query}"]
+        for i, r in enumerate(results, 1):
             lines.append(
-                f"\n[{i}] {res.get('title', '')}\n"
-                f"{res.get('url', '')}\n"
-                f"{res.get('description', '').strip()}"
+                f"\n[{i}] {r.get('title', '')}\n"
+                f"{r.get('href', '')}\n"
+                f"{r.get('body', '').strip()}"
             )
         return "\n".join(lines)
     except Exception as e:
-        return f"[brave search failed: {e}]"
+        return f"[search failed: {e}]"

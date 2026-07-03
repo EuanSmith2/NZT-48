@@ -4,6 +4,7 @@ python-dotenv==1.2.2
 PyYAML==6.0.1
 requests==2.34.2
 anthropic==0.115.1
+ddgs
 
 # --- optional: voice pipeline (voice.py) ---
 # Only needed if you don't already have a whisper install that voice.py can
