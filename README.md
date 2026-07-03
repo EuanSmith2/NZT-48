@@ -19,7 +19,7 @@
 
 ---
 
-This repo just slipped Claude the NZT-48 pill and now your AI intern is absolutely ZOOTED.
+This repo just slipped Claude the NZT-48 pill and now your AI intern is high af
 
 NZT-48 is the personal AI OS that runs 24/7 like that one over-caffeinated, Adderall-fueled intern who never sleeps, never forgets, and actually gets shit done. (Built by Euan Smith)
 
