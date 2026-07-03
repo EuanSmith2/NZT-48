@@ -28,6 +28,12 @@ try:
 except Exception:
     _HAS_PSUTIL = False
 
+try:
+    import claude_usage as _cu
+    _HAS_CU = True
+except Exception:
+    _HAS_CU = False
+
 # ── palette ──────────────────────────────────────────────────────────────────
 G    = "#00ff66"   # primary green
 G2   = "#00cc55"   # dim green
@@ -206,10 +212,18 @@ def _gather() -> dict:
         except Exception:
             pass
 
+    usage = None
+    if _HAS_CU:
+        try:
+            usage = _cu.gather()
+        except Exception:
+            pass
+
     status, pid = _bot_status()
     return {
         "bot_status": status,
         "bot_pid": pid,
+        "usage": usage,
         "cost_usd": round(cost_row[0], 4),
         "tokens": int(cost_row[1]),
         "pending_drafts": pending,
@@ -304,6 +318,16 @@ class StatusPanel(Static):
             pct = s["ram_used"] / s["ram_total"] * 100
             t.append_text(_bar(pct))
             t.append(f"  {s['ram_used']:.1f}/{s['ram_total']:.0f}GB\n", style=G)
+
+        u = d.get("usage")
+        if u:
+            t.append("\n")
+            _title(t, "CLAUDE")
+            t.append(" 5h   ", style=GRY)
+            t.append_text(_bar(u["pct"]))
+            t.append(f"  {_cu.fmt(u['win_tokens'])}\n", style=G)
+            t.append(" day  ", style=GRY)
+            t.append(f"{_cu.fmt(u['day_tokens'])} tok\n", style=G2)
 
         t.append(f"\n ↻ {d['refreshed']}", style=DIM)
         return t

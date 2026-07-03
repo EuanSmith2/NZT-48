@@ -13,3 +13,12 @@ monitoring:
   window_start: "08:00"
   window_end: "20:30"
   max_per_day: 2
+
+claude:
+  # TUI usage bar. "auto" reads the LOCAL logged-in Claude Code account's own
+  # transcripts (~/.claude) — it links to YOUR account on YOUR machine, never
+  # anyone else's. Set "off" to disable.
+  usage: auto
+  # Soft budget the 5h-window bar is scaled against (weighted tokens). Plan
+  # limits aren't published — calibrate to taste.
+  window_budget_tokens: 500000

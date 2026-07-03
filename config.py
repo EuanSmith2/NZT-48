@@ -82,6 +82,11 @@ HOT_FILES = {
     "priorities": VAULT / "00-META/PRIORITIES.md",
 }
 
+# claude usage bar (TUI) — reads the LOCAL logged-in account's ~/.claude only
+_claude = _cfg.get("claude", {})
+CLAUDE_USAGE = _claude.get("usage", "auto")            # auto | off
+CLAUDE_WINDOW_BUDGET = int(_claude.get("window_budget_tokens", 500_000))
+
 # monitoring
 MON_ENABLED = _mon.get("enabled", True)
 MON_INTERVAL = _mon.get("interval_minutes", 30)
