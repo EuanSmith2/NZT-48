@@ -11,3 +11,4 @@ textual
 # Only needed if you don't already have a whisper install that voice.py can
 # find (it checks ~/.claude/mcp_servers/whisper-env/ first). Pulls torch (~2GB).
 # openai-whisper==20250625
+psutil==7.2.2
