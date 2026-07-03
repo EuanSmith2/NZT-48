@@ -99,9 +99,11 @@ cd NZT-48
 The installer detects what you have, fills in what's missing, asks 3 questions, and starts the bot. Takes 5 minutes the first time (model download). Under 60 seconds on repeat.
 
 **You need:**
-- macOS (Linux support coming)
+- macOS (Linux / WSL support in progress)
 - [Claude Code CLI](https://github.com/anthropics/claude-code) — logged in
 - A Telegram account
+
+> **Heads up:** `install.sh` fetches and runs a script from the internet (standard for most CLI tools, same as Homebrew). Review it first if that's your thing: `curl -fsSL https://raw.githubusercontent.com/EuanSmith2/NZT-48/master/install.sh | less`
 
 That's it.
 
@@ -121,8 +123,9 @@ That's it.
 
 - [ ] Linux / WSL support
 - [ ] Voice input (Whisper pipeline)
-- [ ] Web dashboard
+- [x] Web dashboard
 - [ ] Multi-vault support
+- [ ] Multi-user Telegram (one bot, multiple people)
 
 ---
 
