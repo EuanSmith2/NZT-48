@@ -49,9 +49,10 @@ def _finish(intent: str, score: int, confidence: float, reason: str,
             agent_override=None, candidates=None) -> dict:
     score = max(1, min(5, score))
     agent = agent_override if agent_override is not None else AGENT_FOR_INTENT.get(intent)
-    # Two runtimes: nzt-lite (local, free) for lightweight only; everything
-    # else runs on Claude Code ("cc", subscription). Agents always need cc.
-    tier = "local" if score <= 2 and agent is None else "cc"
+    # All traffic routes through Claude Code (subscription, zero marginal cost).
+    # Local tier disabled: gemma4:12b (7.6GB) is too heavy for 16GB machines.
+    # Re-enable by swapping tier assignment if you pull a <=4B local model.
+    tier = "cc"
     # score 5 / TASK = too heavy for headless → interactive Claude Code queue
     queue = score >= 5 or intent == "TASK"
     return {"intent": intent, "score": score, "confidence": confidence,
