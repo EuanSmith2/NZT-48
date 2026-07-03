@@ -9,6 +9,12 @@ from dotenv import load_dotenv
 NZT = Path(__file__).resolve().parent
 load_dotenv(NZT / ".env")
 
+# launchd/cron start with a bare PATH — homebrew tools (markitdown, ffmpeg)
+# and ~/.local/bin (claude) must be findable from any entrypoint
+_extra = f"/opt/homebrew/bin:{Path.home()}/.local/bin"
+if "/opt/homebrew/bin" not in os.environ.get("PATH", ""):
+    os.environ["PATH"] = f"{_extra}:{os.environ.get('PATH', '/usr/bin:/bin')}"
+
 
 def _load_cfg() -> dict:
     p = NZT / "config.yml"
