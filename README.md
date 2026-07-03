@@ -82,6 +82,8 @@ Vault Memory — Eats your entire Obsidian vault. Your real notes, projects, and
 
 Telegram Native — Text it like a person. Commands or normal chat. Always on, always ready.
 
+Terminal Dashboard — Riced btop/neofetch-style TUI. Live bot status, pipeline, message feed, alerts, CPU/RAM bars, clock. Opens automatically when you launch a terminal. Q to quit, R to refresh, B to restart the bot.
+
 Zero € per message at scale. Runs on your machine. Adapts to you after a dead-simple 3-question setup. (becuase fck subscription based services)
 
 ---
