@@ -74,6 +74,15 @@ def classify(message: str, is_command: bool = False, command: str = "") -> dict:
         intent = "CAPTURE" if re.search(r"\b(save|remember|note|keep)\b", message, re.I) else "RESEARCH"
         return _finish(intent, 3, 0.9, "url rule")
 
+    # Stage 1.5: short conversational messages have no classifiable intent —
+    # skip Stage 2 entirely and send straight to CHAT to save one cc cold-start.
+    INTENT_KEYWORDS = re.compile(
+        r"\b(research|find|look up|search|remind|remember|note|save|log|task|"
+        r"brief|study|learn|lead|pipeline|prep|call|meeting|price|cost|"
+        r"schedule|plan|write|draft|email|message|dm)\b", re.I)
+    if len(message.split()) <= 8 and not INTENT_KEYWORDS.search(message):
+        return _finish("CHAT", 1, 0.9, "short-message fast-path")
+
     # Stage 2: classify via cc haiku (subscription, zero marginal cost).
     # Local classifier disabled — gemma4:12b too heavy for 16GB machines.
     result = None
