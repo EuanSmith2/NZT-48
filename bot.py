@@ -164,6 +164,14 @@ async def dispatch(update: Update, message: str, route: dict):
     await send(update, reply)
 
 
+async def on_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    if not authed(update):
+        return
+    import voice
+    await update.effective_chat.send_action(ChatAction.TYPING)
+    await voice.handle(update, ctx)
+
+
 async def on_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if not authed(update):
         return
@@ -228,6 +236,8 @@ def main():
     for cmd in router.SLASH_MAP:
         app.add_handler(CommandHandler(cmd, make_command(cmd)))
     app.add_handler(CallbackQueryHandler(on_callback))
+    app.add_handler(MessageHandler(
+        (filters.VOICE | filters.AUDIO) & filters.ChatType.PRIVATE, on_voice))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))
     log.info("NZT-48 starting")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
