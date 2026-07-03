@@ -10,3 +10,10 @@ __pycache__/
 *.egg-info/
 .DS_Store
 config.yml
+whisper_cache/
+*.wav
+*.ogg
+*.oga
+*.jpg
+*.png
+!assets/*.png
