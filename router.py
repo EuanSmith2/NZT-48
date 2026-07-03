@@ -74,22 +74,18 @@ def classify(message: str, is_command: bool = False, command: str = "") -> dict:
         intent = "CAPTURE" if re.search(r"\b(save|remember|note|keep)\b", message, re.I) else "RESEARCH"
         return _finish(intent, 3, 0.9, "url rule")
 
-    # Stage 2: nzt-lite classifies (free, local); headless haiku via
-    # Claude Code is the fallback when Gemma is hot/down. Same prompt both.
+    # Stage 2: classify via cc haiku (subscription, zero marginal cost).
+    # Local classifier disabled — gemma4:12b too heavy for 16GB machines.
     result = None
-    ok, _ = local_client.thermal_ok()
-    if ok and local_client.ollama_up():
-        result = local_client.classify(f"Message: {message}", _system())
-    if result is None:
-        try:
-            import cc_client
-            raw = cc_client.run(f"Message: {message}", system=_system(),
-                                model="haiku", allowed_tools="", max_turns=1,
-                                timeout=60)
-            m = re.search(r"\{.*\}", raw, re.S)
-            result = json.loads(m.group(0)) if m else None
-        except Exception:
-            result = None
+    try:
+        import cc_client
+        raw = cc_client.run(f"Message: {message}", system=_system(),
+                            model="haiku", allowed_tools="", max_turns=1,
+                            timeout=60)
+        m = re.search(r"\{.*\}", raw, re.S)
+        result = json.loads(m.group(0)) if m else None
+    except Exception:
+        result = None
     if result is None:
         return _finish("CHAT", 3, 0.5, "classifier unavailable — defaulting to cc chat")
 
