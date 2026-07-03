@@ -33,6 +33,9 @@ STAGE1_RULES = [
      ("CAPTURE", 3)),
     (re.compile(r"^(remember|note:|log:|save this)\b", re.I), ("CAPTURE", 3)),
     (re.compile(r"^(what should i do|what's next|what now)\b", re.I), ("BRIEF", 3)),
+    # doc_intake payloads: deterministic CAPTURE — never push a 20k-char
+    # document body through the stage-2 classifier
+    (re.compile(r"^File received:", re.I), ("CAPTURE", 3)),
 ]
 
 _router_prompt = None

@@ -172,6 +172,14 @@ async def on_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await voice.handle(update, ctx)
 
 
+async def on_document(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    if not authed(update):
+        return
+    import doc_intake
+    await update.effective_chat.send_action(ChatAction.TYPING)
+    await doc_intake.handle(update, ctx)
+
+
 async def on_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if not authed(update):
         return
@@ -238,6 +246,8 @@ def main():
     app.add_handler(CallbackQueryHandler(on_callback))
     app.add_handler(MessageHandler(
         (filters.VOICE | filters.AUDIO) & filters.ChatType.PRIVATE, on_voice))
+    app.add_handler(MessageHandler(
+        filters.Document.ALL & filters.ChatType.PRIVATE, on_document))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))
     log.info("NZT-48 starting")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
