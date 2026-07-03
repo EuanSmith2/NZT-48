@@ -4,8 +4,8 @@ import asyncio
 import json
 import logging
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.constants import ChatAction
+from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.constants import ChatAction, ParseMode
 from telegram.ext import (Application, CallbackQueryHandler, CommandHandler,
                           ContextTypes, MessageHandler, filters)
 
@@ -28,10 +28,13 @@ def authed(update: Update) -> bool:
     return update.effective_user and update.effective_user.id == TELEGRAM_USER_ID
 
 
-async def send(update: Update, text: str, markup=None):
-    for i in range(0, len(text), 3900):  # telegram 4096 limit
+async def send(update: Update, text: str, markup=None, html: bool = False):
+    mode = ParseMode.HTML if html else None
+    for i in range(0, len(text), 3900):
         await update.effective_chat.send_message(
-            text[i:i + 3900], reply_markup=markup if i + 3900 >= len(text) else None)
+            text[i:i + 3900],
+            reply_markup=markup if i + 3900 >= len(text) else None,
+            parse_mode=mode)
 
 
 def generalist_reply(message: str, context: str, tier: str) -> str:
@@ -289,7 +292,24 @@ def main():
     if not TELEGRAM_TOKEN or not TELEGRAM_USER_ID:
         raise SystemExit("Set TELEGRAM_TOKEN and TELEGRAM_USER_ID in your .env file")
     state.init()
-    app = Application.builder().token(TELEGRAM_TOKEN).build()
+
+    async def post_init(application):
+        await application.bot.set_my_commands([
+            BotCommand("brief",    "Daily brief — cash, pipeline, deadlines"),
+            BotCommand("check",    "One action right now"),
+            BotCommand("lead",     "Business dev & sales"),
+            BotCommand("pipeline", "Pipeline status"),
+            BotCommand("research", "Live web research"),
+            BotCommand("remember", "Save to vault"),
+            BotCommand("recall",   "Search vault"),
+            BotCommand("prep",     "Pre-call prep"),
+            BotCommand("study",    "Learning & flashcards"),
+            BotCommand("task",     "Queue a task"),
+            BotCommand("cost",     "Spend today"),
+            BotCommand("new",      "Fresh session"),
+        ])
+
+    app = Application.builder().token(TELEGRAM_TOKEN).post_init(post_init).build()
     for cmd in router.SLASH_MAP:
         app.add_handler(CommandHandler(cmd, make_command(cmd)))
     app.add_handler(CallbackQueryHandler(on_callback))
