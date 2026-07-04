@@ -12,8 +12,14 @@ _thermal_block_until = 0.0
 
 
 def thermal_ok() -> tuple[bool, str]:
-    """True if it's safe to run local inference. Checks macOS throttle state."""
+    """True if it's safe to run local inference. On macOS, checks throttle
+    state via pmset (fanless machines). Elsewhere (Windows/Linux GPU boxes)
+    there is no mac throttle to check — ollama being up is the gate."""
     global _thermal_block_until
+    import sys
+    if sys.platform != "darwin":
+        up = ollama_up()
+        return up, "ok" if up else "ollama down"
     if time.time() < _thermal_block_until:
         return False, "thermal TTL active"
     try:
