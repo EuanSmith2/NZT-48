@@ -60,7 +60,8 @@ def local_reply(message: str, context: str) -> str | None:
 
 async def handle_envelope(update: Update, env: dict):
     lines = [env.get("response_md") or ""]
-    applied, gated = agents.apply_writes(env.get("vault_writes"))
+    untrusted = bool(env.get("untrusted"))
+    applied, gated = agents.apply_writes(env.get("vault_writes"), untrusted)
     for a in applied:
         lines.append(f"✅ vault: {a}")
     if env.get("status") == "escalate" and env.get("escalate"):
@@ -73,7 +74,9 @@ async def handle_envelope(update: Update, env: dict):
 
     if env.get("email_draft"):
         ed = env["email_draft"]
-        preview = f"📧 to: {ed.get('to')}\nsubject: {ed.get('subject')}\n\n{ed.get('body','')}"
+        domain = (ed.get("to") or "?").rsplit("@", 1)[-1]
+        preview = (f"📧 to: {ed.get('to')}\n⚠️ sends to domain: {domain.upper()}\n"
+                   f"subject: {ed.get('subject')}\n\n{ed.get('body','')}")
         did = state.save_draft("email", preview, ed)
         await send(update, f"{preview}\n\napprove to send?", markup=_gate_markup(did))
     if env.get("status") == "needs_approval" and not gated:
@@ -81,7 +84,9 @@ async def handle_envelope(update: Update, env: dict):
         await send(update, "approve this draft?", markup=_gate_markup(did))
     for w in gated:
         did = state.save_draft("vault_write", _describe_write(w), {"write": w})
-        await send(update, f"📝 vault change needs approval:\n{_describe_write(w)}",
+        tag = "📥 from ingested content — needs approval" if untrusted \
+            else "📝 vault change needs approval"
+        await send(update, f"{tag}:\n{_describe_write(w)}",
                    markup=_gate_markup(did))
 
 
@@ -132,7 +137,8 @@ async def on_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await q.edit_message_text("🗑 dropped")
 
 
-async def dispatch(update: Update, message: str, route: dict):
+async def dispatch(update: Update, message: str, route: dict,
+                   untrusted: bool = False):
     await update.effective_chat.send_action(ChatAction.TYPING)
     tier, agent = route["tier"], route["agent"]
     context = memory.build_context(tier, message, route["intent"])
@@ -150,7 +156,8 @@ async def dispatch(update: Update, message: str, route: dict):
     elif agent:
         status = await update.effective_chat.send_message(f"🔎 on it — {agent} agent (claude code)")
         try:
-            env = await asyncio.to_thread(agents.run, agent, message, context, tier)
+            env = await asyncio.to_thread(agents.run, agent, message, context,
+                                          tier, "", untrusted)
         except RuntimeError as e:
             env = {"status": "error", "vault_writes": [], "next_action": None,
                    "escalate": None,
@@ -230,7 +237,7 @@ async def on_photo(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         message = (f"Screenshot/photo captured{' — note: ' + hint if hint else ''}. "
                    f"Description: {desc}")
         route = await asyncio.to_thread(router.classify, message[:400])
-        await dispatch(update, message, route)
+        await dispatch(update, message, route, untrusted=True)
     finally:
         P(tmp_path).unlink(missing_ok=True)
 

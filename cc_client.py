@@ -59,11 +59,24 @@ def run(prompt: str, system: str = "", model: str = "sonnet",
 QUEUE_PATH = "00-META/INBOX/claude-code-queue.md"
 
 
+QUEUE_MAX_PER_HOUR = 5
+
+
 def queue_task(message: str, reason: str) -> str:
     """Flag heavy work back to an interactive Claude Code session (the primary
-    interface for complex tasks). Returns the reply for Telegram."""
+    interface for complex tasks). Rate-limited so a poisoned input or a loop
+    can't spam the queue file (red-team P3). Returns the reply for Telegram."""
     import memory
+    import state
     from datetime import datetime
+    hour_key = datetime.now().strftime("%Y%m%d%H")
+    raw = state.kv_get("queue_hour") or ""
+    key, _, count = raw.partition(":")
+    n = int(count) if key == hour_key and count.isdigit() else 0
+    if n >= QUEUE_MAX_PER_HOUR:
+        return ("⏳ queue rate limit hit (5/hour) — that task wasn't saved. "
+                "Try again later or open Claude Code directly.")
+    state.kv_set("queue_hour", f"{hour_key}:{n + 1}")
     memory.vault_write(
         QUEUE_PATH, "append",
         f"- [ ] [{datetime.now().strftime('%Y-%m-%d %H:%M')}] {message}  "

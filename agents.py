@@ -60,7 +60,7 @@ def parse_envelope(raw: str) -> dict:
 
 
 def run(agent: str, message: str, context: str, tier: str = "cc",
-        extra: str = "") -> dict:
+        extra: str = "", untrusted: bool = False) -> dict:
     system = assemble(agent)
     search_block = ""
     if agent == "research":
@@ -71,6 +71,7 @@ def run(agent: str, message: str, context: str, tier: str = "cc",
                         allowed_tools="Read,Glob,Grep", max_turns=12)
     env = parse_envelope(raw)
     env["agent"] = agent
+    env["untrusted"] = untrusted  # provenance: writes from ingested content
     return env
 
 
@@ -84,21 +85,27 @@ def needs_gate(write: dict) -> bool:
     if write.get("mode") == "modify":
         return True
     try:
+        import os
         from config import VAULT
         normalised = str((VAULT / write.get("path", "")).resolve()
-                         .relative_to(VAULT.resolve()))
+                         .relative_to(VAULT.resolve())).replace(os.sep, "/")
     except (ValueError, Exception):
         return True  # can't normalise → treat as gated
     return normalised.startswith(PROTECTED_PREFIXES)
 
 
-def apply_writes(writes: list[dict]) -> tuple[list[str], list[dict]]:
-    """Apply auto-approved writes; return (result lines, gated writes)."""
+def apply_writes(writes: list[dict],
+                 untrusted: bool = False) -> tuple[list[str], list[dict]]:
+    """Apply auto-approved writes; return (result lines, gated writes).
+    untrusted=True (content ingested from docs/photos/web) forces the gate on
+    EVERY write — closes the vault-poisoning path (red-team A5): a poisoned
+    document must never silently append attacker text that later re-enters
+    context as trusted memory. Costs one extra click, only for external input."""
     applied, gated = [], []
     for w in writes or []:
         if not w.get("path") or not w.get("content"):
             continue
-        if needs_gate(w):
+        if untrusted or needs_gate(w):
             gated.append(w)
             continue
         try:
