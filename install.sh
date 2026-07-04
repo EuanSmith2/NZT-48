@@ -204,6 +204,10 @@ smoke_test() {
     || die "import failed — check $NZT_DIR/logs/bot.log"
 }
 
+scaffold_vault() {
+  "$VENV/bin/python" scaffold.py && ok "vault scaffold ensured"
+}
+
 start_bot() {
   launchctl load "$PLIST_DST" 2>/dev/null || true
   ok "bot started  (com.nzt48)"
@@ -223,6 +227,7 @@ write_env
 write_plist
 onboarding
 smoke_test
+scaffold_vault
 start_bot
 
 printf "\n${G}NZT-48 is live.${N}\n"

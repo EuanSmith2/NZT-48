@@ -42,6 +42,12 @@ def db():
 def init():
     with db() as con:
         con.executescript(SCHEMA)
+    # fresh vault (no priorities file) → lay down the scaffold so finance/
+    # monitors/briefing never run on empty. Existing vaults are untouched.
+    from config import HOT_FILES, VAULT
+    if not HOT_FILES["priorities"].exists():
+        import scaffold
+        scaffold.ensure_vault(VAULT)
 
 
 def add_message(role: str, text: str):
