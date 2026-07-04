@@ -1,10 +1,14 @@
 """NZT-48 terminal dashboard — riced neofetch/btop aesthetic.
 Run: .venv/bin/python tui.py
 Keys: Q quit · R refresh · B restart bot"""
+import os
+import signal
 import subprocess
 import sys
 from datetime import date, datetime
 from pathlib import Path
+
+_PID_FILE = Path("/tmp/nzt48-tui.pid")
 
 from rich.text import Text
 from textual.app import App, ComposeResult
@@ -497,5 +501,41 @@ class NZT48TUI(App):
             self.notify(f"restart failed: {e}", severity="error", timeout=3)
 
 
+def _already_running() -> bool:
+    """Return True if a live TUI process owns the PID file."""
+    if not _PID_FILE.exists():
+        return False
+    try:
+        pid = int(_PID_FILE.read_text().strip())
+        if pid == os.getpid():
+            return False          # we ARE the process
+        os.kill(pid, 0)           # signal 0 = existence check, no actual signal
+        return True               # process is alive
+    except (ValueError, ProcessLookupError, PermissionError):
+        _PID_FILE.unlink(missing_ok=True)   # stale lock → clean up
+        return False
+
+
+def _write_pid():
+    _PID_FILE.write_text(str(os.getpid()))
+
+
+def _cleanup(*_):
+    _PID_FILE.unlink(missing_ok=True)
+    sys.exit(0)
+
+
 if __name__ == "__main__":
-    NZT48TUI().run()
+    if _already_running():
+        print("NZT-48 TUI already running — open window or press R to refresh.")
+        sys.exit(0)
+
+    _write_pid()
+    # clean up PID file on any exit signal
+    for _sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
+        signal.signal(_sig, _cleanup)
+
+    try:
+        NZT48TUI().run()
+    finally:
+        _PID_FILE.unlink(missing_ok=True)
