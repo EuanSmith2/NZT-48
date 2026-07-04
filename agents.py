@@ -7,7 +7,10 @@ import re
 
 import cc_client
 import memory
-from config import PROMPTS, USER_NAME, USER_PROFILE, VAULT
+from config import (BRIEF_NEWS_TOPICS, BRIEF_PRIORITY_ORDERING, BUSINESS_OFFER,
+                    CC_MAIN, GOAL_HEADLINE, LEARNING_PLATFORMS, PROMPTS,
+                    PROTECTED_PREFIXES, USER_BACKGROUND, USER_NAME,
+                    USER_PROFILE, USER_WEBSITE, VAULT)
 
 _blocks = None
 
@@ -32,11 +35,23 @@ def assemble(name: str) -> str:
     text = path.read_text()
     for k, v in blocks().items():
         text = text.replace(k, v)
-    # fill template vars from config
-    text = text.replace("{USER_NAME}", USER_NAME)
-    text = text.replace("{USER_PROFILE}", USER_PROFILE)
-    text = text.replace("{VAULT_PATH}", str(VAULT))
-    text = text.replace("{EUAN_CONTEXT}", "")  # safety: clear any missed refs
+    # fill template vars from config — every {PLACEHOLDER} a prompt can use
+    fills = {
+        "{USER_NAME}": USER_NAME,
+        "{USER_PROFILE}": USER_PROFILE,
+        "{VAULT_PATH}": str(VAULT),
+        "{USER_GOAL}": GOAL_HEADLINE or "(no headline goal set)",
+        "{USER_BUSINESS}": USER_BACKGROUND or USER_PROFILE,
+        "{USER_WEBSITE}": USER_WEBSITE,
+        "{BUSINESS_OFFER}": BUSINESS_OFFER or "(business module disabled)",
+        "{USER_LEARNING_PLATFORMS}": ", ".join(LEARNING_PLATFORMS) or "(none)",
+        "{PRIORITY_ORDERING}": " > ".join(
+            p.replace("_", " ").upper() for p in BRIEF_PRIORITY_ORDERING),
+        "{NEWS_TOPICS}": ", ".join(BRIEF_NEWS_TOPICS),
+        "{EUAN_CONTEXT}": "",  # safety: clear any missed legacy refs
+    }
+    for k, v in fills.items():
+        text = text.replace(k, v)
     return text
 
 
@@ -67,15 +82,12 @@ def run(agent: str, message: str, context: str, tier: str = "cc",
         import brave_search
         search_block = brave_search.search(message)
     user = f"{context}\n\n{search_block}\n\n{extra}\n\n{USER_NAME}: {message}".strip()
-    raw = cc_client.run(user, system=system, model="sonnet",
+    raw = cc_client.run(user, system=system, model=CC_MAIN,
                         allowed_tools="Read,Glob,Grep", max_turns=12)
     env = parse_envelope(raw)
     env["agent"] = agent
     env["untrusted"] = untrusted  # provenance: writes from ingested content
     return env
-
-
-PROTECTED_PREFIXES = ("03-PEOPLE/", "01-PROFILE/", "02-GOALS/")
 
 
 def needs_gate(write: dict) -> bool:

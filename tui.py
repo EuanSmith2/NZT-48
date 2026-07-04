@@ -14,7 +14,7 @@ from textual.widgets import Footer, Static
 
 sys.path.insert(0, str(Path(__file__).parent))
 import state
-from config import USER_NAME
+from config import ROLE_KEY, USER_NAME
 
 try:
     import finance as _finance
@@ -346,7 +346,7 @@ class MessagesPanel(Static):
             except (TypeError, ValueError, OSError):
                 stamp = "--:--"
             t.append(f" [{stamp}] ", style=DIM)
-            is_user = role in ("euan", USER_NAME)
+            is_user = role in (ROLE_KEY, USER_NAME)
             t.append("▶ euan " if is_user else "◀ nzt  ",
                      style=f"bold {G if is_user else G2}")
             snippet = text[:64].replace("\n", " ").strip()

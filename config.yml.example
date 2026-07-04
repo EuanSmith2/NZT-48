@@ -1,24 +1,89 @@
-# NZT-48 configuration
-# Copy to config.yml — install.sh does this automatically
+# ── NZT-48 config ────────────────────────────────────────────────────────────
+# Everything that makes the system YOURS. The code reads from here — there is
+# no default human baked in. Copy to config.yml and edit, or run /setup in
+# Telegram and the onboarding wizard writes this file for you.
 
 user:
-  name: "User"                    # your name, used in prompts and brief header
-  vault: "~/Documents/Notes"      # path to your Obsidian vault (auto-detected)
-  brief_time: "09:00"             # morning brief time (24h)
-  profile: "freelancer"           # freelancer | developer | student | other
+  name: "Ada"                      # {USER_NAME} in prompts, brief header
+  role_key: "ada"                  # message role label (bot + dashboards)
+  profile: "developer"             # freelancer | developer | student | other
+  background: "embedded dev, Turin" # one line: what you do → {USER_BUSINESS}
+  website: ""                      # {USER_WEBSITE} (email signature, optional)
+  locale: "en"                     # stage-1 regex table + whisper language
+  timezone: "Europe/Dublin"
+
+goals:
+  headline: "ship v1 by December"  # {USER_GOAL} — the brief leads with this
+  deadline: "2026-12-31"
+
+brief:
+  time: "09:00"
+  priority_ordering:               # the briefing agent's hierarchy, top first
+    - cash_collection
+    - cold_outreach
+    - skills_study
+  news_topics:
+    - "cybersecurity vulnerability news"
+    - "technology business news"
+    - "AI tools productivity"
+
+# ── optional domain modules ──────────────────────────────────────────────────
+modules:
+  business:
+    enabled: false                 # false → no pipeline, no cold-call nudge,
+                                   #         no payment monitor. Not everyone
+                                   #         is a freelancer chasing invoices.
+    offer: ""                      # {BUSINESS_OFFER} e.g. "websites for local businesses"
+    pipeline_file: "09-FINANCE/web-business-pipeline.md"
+    lead_scoring:
+      no_website: 40
+      social_only_recent: 20
+      phone_accessible: 15
+      recent_reviews: 15
+      local_to_area: 10
+      vertical_match: 5
+      franchise: -25
+    tiers: { A: 70, B: 45 }        # >=A call · >=B email · else archive
+    assumptions:
+      call_to_conversation: 0.40
+      conversation_to_proposal: 0.25
+      proposal_to_won: 0.40
+      avg_deal_eur: 500
+  learning:
+    enabled: false
+    platforms: []                  # e.g. ["TryHackMe", "HTB Academy"]
+    progress_file: "06-LEARNING/platform-progress.md"
+
+vault:
+  path: "~/Documents/Notes"        # your Obsidian (or any markdown) vault
+  hot_files:
+    hot_cache: "00-META/HOT-CACHE.md"
+    priorities: "00-META/PRIORITIES.md"
+  protected_prefixes:              # writes here always need approval
+    - "03-PEOPLE/"
+    - "01-PROFILE/"
+    - "02-GOALS/"
+  intent_folders:                  # retrieval scope per intent
+    BUSINESS: ["04-PROJECTS", "09-FINANCE"]
+    PREP: ["03-PEOPLE", "08-EVENTS", "04-PROJECTS"]
+    LEARNING: ["06-LEARNING"]
+    RESEARCH: ["05-KNOWLEDGE"]
+
+models:
+  local:
+    enabled: false                 # true on machines with real GPU/RAM headroom
+    model: "nzt-lite"              # ollama tag (see Modelfile — qwen2.5:3b base)
+    max_short_score: 1             # score <= this + CHAT + no agent → local
+  cloud:
+    main: "sonnet"                 # claude -p aliases (subscription)
+    cheap: "haiku"
+
+claude:
+  usage: auto                      # TUI usage bar: reads YOUR local ~/.claude only
+  window_budget_tokens: 500000
 
 monitoring:
   enabled: true
   interval_minutes: 30
-  window_start: "08:00"
-  window_end: "20:30"
+  window: { start: "08:00", end: "20:30" }
   max_per_day: 2
-
-claude:
-  # TUI usage bar. "auto" reads the LOCAL logged-in Claude Code account's own
-  # transcripts (~/.claude) — it links to YOUR account on YOUR machine, never
-  # anyone else's. Set "off" to disable.
-  usage: auto
-  # Soft budget the 5h-window bar is scaled against (weighted tokens). Plan
-  # limits aren't published — calibrate to taste.
-  window_budget_tokens: 500000

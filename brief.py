@@ -26,8 +26,8 @@ def news() -> list[str]:
     if not BRAVE_API_KEY:
         return []
     out = []
-    for q in ("cybersecurity vulnerability news", "technology business news",
-              "AI tools productivity"):
+    from config import BRIEF_NEWS_TOPICS
+    for q in BRIEF_NEWS_TOPICS[:3]:
         try:
             r = requests.get(
                 "https://api.search.brave.com/res/v1/news/search",

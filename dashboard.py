@@ -7,7 +7,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import finance
 import state
-from config import USER_NAME
+from config import ROLE_KEY, USER_NAME
 
 PORT = 5748
 
@@ -101,7 +101,7 @@ HTML = r"""<!DOCTYPE html>
   .msg{padding:6px 0;border-bottom:1px solid #111;font-size:12px}
   .msg:last-child{border-bottom:none}
   .role{color:#333;margin-right:8px;font-size:10px;text-transform:uppercase;letter-spacing:1px}
-  .role.euan{color:#00ff66}
+  .role.""" + ROLE_KEY + """{color:#00ff66}
   footer{margin-top:24px;color:#1a1a1a;font-size:10px;text-align:center;letter-spacing:2px}
   #refresh{color:#1a1a1a;font-size:10px;float:right;letter-spacing:1px}
 </style>

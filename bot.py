@@ -16,7 +16,7 @@ import local_client
 import memory
 import router
 import state
-from config import TELEGRAM_TOKEN, TELEGRAM_USER_ID, USER_NAME
+from config import MODEL_LOCAL, ROLE_KEY, TELEGRAM_TOKEN, TELEGRAM_USER_ID, USER_NAME
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s %(name)s %(levelname)s %(message)s")
@@ -142,7 +142,7 @@ async def dispatch(update: Update, message: str, route: dict,
     await update.effective_chat.send_action(ChatAction.TYPING)
     tier, agent = route["tier"], route["agent"]
     context = memory.build_context(tier, message, route["intent"])
-    state.add_message("euan", message)
+    state.add_message(ROLE_KEY, message)
 
     if route["intent"] == "CLARIFY":
         a, b = (route["candidates"] + ["CHAT", "CAPTURE"])[:2]
@@ -293,7 +293,7 @@ def make_command(cmd: str):
             await send(update, "fresh session.")
             return
         if cmd == "cost":
-            await send(update, f"runs on Claude Code subscription + local Gemma — "
+            await send(update, f"runs on Claude Code subscription + local {MODEL_LOCAL} — "
                                f"€0 marginal. API fallback spend, 7d: "
                                f"${state.week_cost_usd():.2f}")
             return

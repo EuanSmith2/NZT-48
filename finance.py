@@ -4,9 +4,9 @@ import re
 from datetime import date, datetime, timedelta
 
 import memory
-from config import VAULT
+from config import BIZ_ASSUMPTIONS, BUSINESS_ENABLED, PIPELINE_FILE, VAULT
 
-PIPELINE = "09-FINANCE/web-business-pipeline.md"
+PIPELINE = PIPELINE_FILE
 
 
 def _snapshot_and_text():
@@ -32,11 +32,12 @@ def _table_rows(section_text: str) -> list[list[str]]:
 def assumptions(text: str) -> dict:
     sec = _section(text, "Assumptions")
     vals = dict(re.findall(r"^(\w+):\s*([\d.]+)", sec, re.M))
+    d = BIZ_ASSUMPTIONS  # config defaults; vault Assumptions section wins
     return {
-        "c2c": float(vals.get("call_to_conversation", 0.40)),
-        "c2p": float(vals.get("conversation_to_proposal", 0.25)),
-        "p2w": float(vals.get("proposal_to_won", 0.40)),
-        "avg_deal": float(vals.get("avg_deal_eur", 500)),
+        "c2c": float(vals.get("call_to_conversation", d.get("call_to_conversation", 0.40))),
+        "c2p": float(vals.get("conversation_to_proposal", d.get("conversation_to_proposal", 0.25))),
+        "p2w": float(vals.get("proposal_to_won", d.get("proposal_to_won", 0.40))),
+        "avg_deal": float(vals.get("avg_deal_eur", d.get("avg_deal_eur", 500))),
     }
 
 
@@ -50,7 +51,15 @@ def calls_this_week(text: str) -> int:
     return n
 
 
+EMPTY = {"clients_needed": 0, "weeks_left": 0, "calls_needed": 0,
+         "weekly_call_target": 0, "calls_this_week": 0, "pipeline_value": 0,
+         "stages": {}, "untouched_a": [], "outstanding": [],
+         "income_received": 0, "call_to_client": 0, "mrr": 0}
+
+
 def compute() -> dict:
+    if not BUSINESS_ENABLED:
+        return dict(EMPTY)
     snap, text = _snapshot_and_text()
     a = assumptions(text)
     target = int(snap.get("target_clients", 3))

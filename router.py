@@ -4,7 +4,7 @@ import json
 import re
 
 import local_client
-from config import PROMPTS
+from config import CC_CHEAP, LOCAL_ENABLED, LOCAL_MAX_SHORT_SCORE, LOCALE
 
 SLASH_MAP = {
     "brief": ("BRIEF", 3, "briefing"),
@@ -28,13 +28,18 @@ AGENT_FOR_INTENT = {
     "CHAT": None, "SYSTEM": None,
 }
 
-STAGE1_RULES = [
-    (re.compile(r"^(just got off|just off|just finished|spoke to|talked to|met with)\b", re.I),
-     ("CAPTURE", 3)),
-    (re.compile(r"^(remember|note:|log:|save this)\b", re.I), ("CAPTURE", 3)),
-    (re.compile(r"^(what should i do|what's next|what now)\b", re.I), ("BRIEF", 3)),
-    # doc_intake payloads: deterministic CAPTURE — never push a 20k-char
-    # document body through the stage-2 classifier
+# stage-1 regex tables are per-locale; unknown locale → structural rules only
+_STAGE1_BY_LOCALE = {
+    "en": [
+        (re.compile(r"^(just got off|just off|just finished|spoke to|talked to|met with)\b", re.I),
+         ("CAPTURE", 3)),
+        (re.compile(r"^(remember|note:|log:|save this)\b", re.I), ("CAPTURE", 3)),
+        (re.compile(r"^(what should i do|what's next|what now)\b", re.I), ("BRIEF", 3)),
+    ],
+}
+STAGE1_RULES = _STAGE1_BY_LOCALE.get(LOCALE, []) + [
+    # structural, locale-independent: doc_intake payloads route deterministic
+    # CAPTURE — never push a 20k-char document body through the classifier
     (re.compile(r"^File received:", re.I), ("CAPTURE", 3)),
 ]
 
@@ -44,18 +49,26 @@ _router_prompt = None
 def _system() -> str:
     global _router_prompt
     if _router_prompt is None:
-        _router_prompt = (PROMPTS / "router.txt").read_text()
+        import agents
+        _router_prompt = agents.assemble("router")  # fills {USER_BUSINESS} etc.
     return _router_prompt
+
+
+def _pick_tier(intent: str, score: int, agent) -> str:
+    """models.local.enabled routes ONLY low-score agent-less CHAT to the local
+    model (Qwen-class). Anything touching vault, people, money, or multi-step
+    stays on Claude Code. Conservative on purpose."""
+    if (LOCAL_ENABLED and agent is None and intent == "CHAT"
+            and score <= LOCAL_MAX_SHORT_SCORE):
+        return "local"
+    return "cc"
 
 
 def _finish(intent: str, score: int, confidence: float, reason: str,
             agent_override=None, candidates=None) -> dict:
     score = max(1, min(5, score))
     agent = agent_override if agent_override is not None else AGENT_FOR_INTENT.get(intent)
-    # All traffic routes through Claude Code (subscription, zero marginal cost).
-    # Local tier disabled: gemma4:12b (7.6GB) is too heavy for 16GB machines.
-    # Re-enable by swapping tier assignment if you pull a <=4B local model.
-    tier = "cc"
+    tier = _pick_tier(intent, score, agent)
     # score 5 / TASK = too heavy for headless → interactive Claude Code queue
     queue = score >= 5 or intent == "TASK"
     return {"intent": intent, "score": score, "confidence": confidence,
@@ -86,18 +99,24 @@ def classify(message: str, is_command: bool = False, command: str = "") -> dict:
     if len(message.split()) <= 8 and not INTENT_KEYWORDS.search(message):
         return _finish("CHAT", 1, 0.9, "short-message fast-path")
 
-    # Stage 2: classify via cc haiku (subscription, zero marginal cost).
-    # Local classifier disabled — gemma4:12b too heavy for 16GB machines.
+    # Stage 2: local classifier first when enabled (sub-second, free) —
+    # classification is the latency-critical JSON case a small model handles
+    # well. Fallback: cc haiku (subscription, zero marginal cost).
     result = None
-    try:
-        import cc_client
-        raw = cc_client.run(f"Message: {message}", system=_system(),
-                            model="haiku", allowed_tools="", max_turns=1,
-                            timeout=60)
-        m = re.search(r"\{.*\}", raw, re.S)
-        result = json.loads(m.group(0)) if m else None
-    except Exception:
-        result = None
+    if LOCAL_ENABLED:
+        ok, _ = local_client.thermal_ok()
+        if ok:
+            result = local_client.classify(f"Message: {message}", _system())
+    if result is None:
+        try:
+            import cc_client
+            raw = cc_client.run(f"Message: {message}", system=_system(),
+                                model=CC_CHEAP, allowed_tools="", max_turns=1,
+                                timeout=60)
+            m = re.search(r"\{.*\}", raw, re.S)
+            result = json.loads(m.group(0)) if m else None
+        except Exception:
+            result = None
     if result is None:
         return _finish("CHAT", 3, 0.5, "classifier unavailable — defaulting to cc chat")
 

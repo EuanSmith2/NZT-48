@@ -27,23 +27,77 @@ def _load_cfg() -> dict:
 _cfg = _load_cfg()
 _user = _cfg.get("user", {})
 _mon = _cfg.get("monitoring", {})
+_goals = _cfg.get("goals", {})
+_brief = _cfg.get("brief", {})
+_modules = _cfg.get("modules", {})
+_biz = _modules.get("business", {})
+_learn = _modules.get("learning", {})
+_vault = _cfg.get("vault", {})
+_models = _cfg.get("models", {})
+_local = _models.get("local", {})
+_cloud = _models.get("cloud", {})
 
 # user identity
 USER_NAME = _user.get("name", "User")
-BRIEF_TIME = _user.get("brief_time", "09:00")
+ROLE_KEY = _user.get("role_key", (USER_NAME.split()[0] if USER_NAME else "user").lower())
 USER_PROFILE = _user.get("profile", "freelancer")
+USER_BACKGROUND = _user.get("background", "")
+USER_WEBSITE = _user.get("website", "")
+LOCALE = _user.get("locale", "en")
+TIMEZONE = _user.get("timezone", "")
+
+# goals
+GOAL_HEADLINE = _goals.get("headline", "")
+GOAL_DEADLINE = str(_goals.get("deadline", ""))
+
+# brief
+BRIEF_TIME = _brief.get("time", _user.get("brief_time", "09:00"))
+BRIEF_PRIORITY_ORDERING = _brief.get("priority_ordering",
+                                     ["cash_collection", "cold_outreach", "skills_study"])
+BRIEF_NEWS_TOPICS = _brief.get("news_topics",
+                               ["cybersecurity vulnerability news",
+                                "technology business news",
+                                "AI tools productivity"])
+
+# modules — OPTIONAL domains. business.enabled=false switches off the entire
+# freelance layer (pipeline, cold-call nudge, payment monitor); the engine
+# must not assume every human is a Dublin freelancer chasing invoices.
+BUSINESS_ENABLED = bool(_biz.get("enabled", True))
+BUSINESS_OFFER = _biz.get("offer", "")
+PIPELINE_FILE = _biz.get("pipeline_file", "09-FINANCE/web-business-pipeline.md")
+LEAD_SCORING = _biz.get("lead_scoring", {
+    "no_website": 40, "social_only_recent": 20, "phone_accessible": 15,
+    "recent_reviews": 15, "local_to_area": 10, "vertical_match": 5,
+    "franchise": -25})
+LEAD_TIERS = _biz.get("tiers", {"A": 70, "B": 45})
+BIZ_ASSUMPTIONS = _biz.get("assumptions", {})
+
+LEARNING_ENABLED = bool(_learn.get("enabled", True))
+LEARNING_PLATFORMS = _learn.get("platforms", [])
+LEARNING_PROGRESS_FILE = _learn.get("progress_file", "06-LEARNING/platform-progress.md")
 
 # vault
-VAULT = Path(os.path.expanduser(_user.get("vault", "~/Documents/Notes")))
+VAULT = Path(os.path.expanduser(_vault.get("path", _user.get("vault", "~/Documents/Notes"))))
+PROTECTED_PREFIXES = tuple(_vault.get("protected_prefixes",
+                                      ["03-PEOPLE/", "01-PROFILE/", "02-GOALS/"]))
+INTENT_FOLDERS = _vault.get("intent_folders", {
+    "BUSINESS": ["04-PROJECTS", "09-FINANCE"],
+    "PREP": ["03-PEOPLE", "08-EVENTS", "04-PROJECTS"],
+    "LEARNING": ["06-LEARNING"],
+    "RESEARCH": ["05-KNOWLEDGE"]})
 
 # paths
 STATE_DB = NZT / "state.db"
 LOGS = NZT / "logs"
 PROMPTS = NZT / "prompts"
 
-# models
-MODEL_LOCAL = "nzt-lite"
-MODEL_CHEAP = "claude-haiku-4-5-20251001"
+# models / tiers
+LOCAL_ENABLED = bool(_local.get("enabled", False))
+MODEL_LOCAL = _local.get("model", "nzt-lite")
+LOCAL_MAX_SHORT_SCORE = int(_local.get("max_short_score", 1))
+CC_MAIN = _cloud.get("main", "sonnet")     # claude -p model aliases
+CC_CHEAP = _cloud.get("cheap", "haiku")
+MODEL_CHEAP = "claude-haiku-4-5-20251001"  # API-fallback ids (claude_client)
 MODEL_MAIN = "claude-sonnet-4-6"
 MODEL_DEEP = "claude-opus-4-8"
 
@@ -77,9 +131,10 @@ PRICING = {
 }
 
 # vault hot files — read every request for context
+_hot = _vault.get("hot_files", {})
 HOT_FILES = {
-    "hot_cache": VAULT / "00-META/HOT-CACHE.md",
-    "priorities": VAULT / "00-META/PRIORITIES.md",
+    "hot_cache": VAULT / _hot.get("hot_cache", "00-META/HOT-CACHE.md"),
+    "priorities": VAULT / _hot.get("priorities", "00-META/PRIORITIES.md"),
 }
 
 # claude usage bar (TUI) — reads the LOCAL logged-in account's ~/.claude only

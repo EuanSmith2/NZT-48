@@ -8,7 +8,7 @@ import finance
 import memory
 import notify
 import state
-from config import MON_MAX_PER_DAY, VAULT
+from config import BUSINESS_ENABLED, LEARNING_ENABLED, MON_MAX_PER_DAY, VAULT
 
 
 def _today_sent(con) -> int:
@@ -52,6 +52,8 @@ def deadline_monitor(con):
 
 
 def cold_call_nudge(con):
+    if not BUSINESS_ENABLED:
+        return None
     now = datetime.now()
     if now.weekday() == 6 or not (9 <= now.hour < 11 or (now.hour == 11 and now.minute == 0)):
         return None
@@ -85,6 +87,8 @@ def cold_call_nudge(con):
 
 
 def payment_monitor(con):
+    if not BUSINESS_ENABLED:
+        return None
     for o in finance.compute()["outstanding"]:
         if o["days"] >= 7 and not _already(con, "payment", o["client"], 5 * 86400):
             first = o["client"].split()[0]
@@ -98,6 +102,8 @@ def payment_monitor(con):
 
 
 def lead_freshness(con):
+    if not BUSINESS_ENABLED:
+        return None
     text = memory.vault_read("09-FINANCE/web-business-pipeline.md") or ""
     sec = re.search(r"## Prospects\n(.*?)(?=\n## |\Z)", text, re.S)
     if not sec:
@@ -123,6 +129,8 @@ def lead_freshness(con):
 
 
 def learning_streak(con):
+    if not LEARNING_ENABLED:
+        return None
     if datetime.now().hour < 20:
         return None
     if _already(con, "streak", date.today().isoformat(), 20 * 3600):

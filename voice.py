@@ -13,6 +13,7 @@ import tempfile
 from pathlib import Path
 
 import state
+from config import LOCALE
 
 WHISPER_ENV_PY = Path.home() / ".claude/mcp_servers/whisper-env/bin/python3"
 MAX_VOICE_MB = 20
@@ -20,13 +21,13 @@ MAX_VOICE_MB = 20
 _SNIPPET = """
 import sys, whisper
 model = whisper.load_model("base")
-result = model.transcribe(sys.argv[1], language="en", fp16=False)
+result = model.transcribe(sys.argv[1], language=sys.argv[2], fp16=False)
 print(result["text"].strip())
 """
 
 
 def _transcribe_subprocess(audio_path: str, timeout: int) -> str:
-    r = subprocess.run([str(WHISPER_ENV_PY), "-c", _SNIPPET, audio_path],
+    r = subprocess.run([str(WHISPER_ENV_PY), "-c", _SNIPPET, audio_path, LOCALE],
                        capture_output=True, text=True, timeout=timeout)
     if r.returncode != 0:
         raise RuntimeError(f"whisper failed: {r.stderr.strip()[-200:]}")
@@ -41,7 +42,7 @@ def _transcribe_inprocess(audio_path: str) -> str:
             "no whisper available — run: .venv/bin/pip install openai-whisper "
             "(and `brew install ffmpeg` if missing)")
     model = whisper.load_model("base")
-    return model.transcribe(audio_path, language="en", fp16=False)["text"].strip()
+    return model.transcribe(audio_path, language=LOCALE, fp16=False)["text"].strip()
 
 
 def transcribe(audio_path: str, timeout: int = 180) -> str:

@@ -11,15 +11,9 @@ from config import (BUDGET, HOT_CAPS, HOT_FILES, USER_NAME, VAULT, WARM_MAX_FILE
 
 ALIASES: dict[str, list[str]] = {}  # populate from config.yml in future
 
-INTENT_FOLDERS = {
-    "BUSINESS": ["04-PROJECTS", "09-FINANCE"],
-    "PREP": ["03-PEOPLE", "08-EVENTS", "04-PROJECTS"],
-    "LEARNING": ["06-LEARNING"],
-    "RESEARCH": ["05-KNOWLEDGE"],
-    "RECALL": None,  # whole vault
-    "CAPTURE": None,
-    "TASK": None,
-}
+from config import INTENT_FOLDERS as _CFG_FOLDERS
+INTENT_FOLDERS = {"RECALL": None, "CAPTURE": None, "TASK": None,
+                  **{k: list(v) for k, v in _CFG_FOLDERS.items()}}
 
 SKIP_DIRS = {"daily-briefings", "raw", ".obsidian", ".trash", "prep"}
 
