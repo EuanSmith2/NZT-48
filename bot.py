@@ -14,6 +14,7 @@ import cc_client
 import finance
 import local_client
 import memory
+import onboarding
 import router
 import state
 from config import MODEL_LOCAL, ROLE_KEY, TELEGRAM_TOKEN, TELEGRAM_USER_ID, USER_NAME
@@ -49,7 +50,10 @@ def local_reply(message: str, context: str) -> str | None:
         raw = local_client.generate(f"{context}\n\n{USER_NAME}: {message}", max_tokens=400)
         try:  # nzt-lite escalation protocol (K.10)
             j = json.loads(raw)
-            if isinstance(j, dict) and j.get("escalate"):
+            if isinstance(j, dict) and "escalate" in j:
+                # true → out of its depth; false → model wrapped a plain reply
+                # in JSON by mistake (small-model tic) — either way, never show
+                # raw JSON to the user: fall through to Claude Code
                 return None
         except (json.JSONDecodeError, ValueError):
             pass
@@ -242,10 +246,27 @@ async def on_photo(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         P(tmp_path).unlink(missing_ok=True)
 
 
+def _restart_self():
+    import os, sys
+    os.execv(sys.executable, [sys.executable] + sys.argv)
+
+
 async def on_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if not authed(update):
         return
     message = update.message.text.strip()
+
+    # onboarding wizard: mid-flow answers, or auto-start on unconfigured clone
+    if onboarding.active():
+        reply, finished = onboarding.handle_answer(message)
+        await send(update, reply)
+        if finished:
+            asyncio.get_running_loop().call_later(1.5, _restart_self)
+        return
+    from config import NZT
+    if not (NZT / "config.yml").exists():
+        await send(update, onboarding.start())
+        return
 
     # CLARIFY resolution: if previous turn asked for disambiguation, use the
     # one-word answer to pick the intent and re-route the original message
@@ -288,6 +309,9 @@ def make_command(cmd: str):
         if not authed(update):
             return
         args = " ".join(ctx.args) if ctx.args else ""
+        if cmd == "setup":
+            await send(update, onboarding.start())
+            return
         if cmd == "new":
             state.clear_session()
             await send(update, "fresh session.")

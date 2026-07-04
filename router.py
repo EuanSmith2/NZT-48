@@ -17,6 +17,7 @@ SLASH_MAP = {
     "study": ("LEARNING", 3, "learning"),
     "pipeline": ("BUSINESS", 3, "business"),
     "check": ("BRIEF", 3, "briefing"),
+    "setup": ("SYSTEM", 1, None),
     "new": ("SYSTEM", 1, None),
     "cost": ("SYSTEM", 1, None),
 }
