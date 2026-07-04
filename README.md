@@ -1,7 +1,7 @@
 <div align="center">
 
-<img src="assets/swallow.gif" width="200" alt="NZT-48 pill swallowed" />
-<img src="assets/brain.gif" width="200" alt="brain scan loop" />
+<img src="assets/swallow.gif" width="200" alt="NZT-48" />
+<img src="assets/brain.gif" width="200" alt="brain scan" />
 
 # NZT-48
 
@@ -13,19 +13,13 @@
 ![Telegram](https://img.shields.io/badge/Telegram-native-58a6ff?style=flat-square&labelColor=0d0d0d)
 ![Obsidian](https://img.shields.io/badge/Obsidian-memory-7c3aed?style=flat-square&labelColor=0d0d0d)
 
-**The human brain is limited. Artificial intelligence is not.**
-
 </div>
 
 ---
 
-This repo just slipped Claude the NZT-48 pill and now your AI intern is high af
+NZT-48 is a self-hosted personal AI system. It runs on your machine, keeps its memory in your own notes, and reaches you through Telegram. It briefs you each morning before you're up, watches your deadlines and pipeline in the background, drafts what needs drafting — and asks permission before anything leaves your machine.
 
-NZT-48 is the personal AI OS that runs 24/7 like that one over-caffeinated, Adderall-fueled intern who never sleeps, never forgets, and actually gets shit done. (Built by Euan Smith)
-
-It wakes up before you, briefs you every morning like a standing desk standup, watches your whole pipeline, writes your emails, and hits you on Telegram like a real human.
-
-You can straight up message this thing from anywhere, phone, Mac, iOS, whatever, and it just does the thing you ask, no pushback or waffle. Native with your Calendar, Alarms, Mail, reminders, the whole human workflow. No weird chatbot lag. It feels like texting your smartest (and most unhinged) employee. (think The Social Network + Mr.Robot on speed-dail)
+Marginal cost per message: zero. It runs on a Claude Code subscription and a small local model, not per-token API billing.
 
 ---
 
@@ -54,37 +48,36 @@ WAITING ON
 
 ---
 
-## How it's different
+## Design
 
-| | NZT-48 | Other "Jarvis" repos |
-|---|---|---|
-| Cost per message | €0 (Claude Code sub) | API billing |
-| Runs locally | Yes | Usually cloud |
-| Memory | Your Obsidian vault | None / vector DB |
-| Setup | 1 command, 5 min | Days of config |
-| Personality | Adapts to you | Generic |
-| Coddling | None | Excessive |
+**Two-speed routing.** A deterministic router classifies every message. Trivial exchanges run on a local 3B model in under a second; anything that thinks runs on Claude Code headless, with your vault mounted as context. The local tier knows its limits — when uncertain, it escalates rather than answers.
+
+**Memory is your vault.** Your Obsidian notes are the context: hot-cached state, scored retrieval per query, and a strict write protocol. Appends are automatic; edits require approval; and any write originating from ingested content — a PDF, a screenshot, a web page — is gated regardless of destination. External documents cannot silently become memories.
+
+**Seven agents, one contract.** Briefing, research, business, learning, memory, pre-call and task agents share a single output envelope and a single escalation rule: uncertain means ask, never guess.
+
+**Proactive, with a ceiling.** Five background monitors; a hard maximum of two unprompted messages a day. Deadlines outrank nudges, nudges outrank streaks, and anything suppressed surfaces in the next brief instead of disappearing.
+
+**Approval gates on everything outbound.** Emails, vault edits, file moves — each shows exactly what will happen before it happens, down to the recipient's domain.
+
+**Multi-modal in.** Voice notes are transcribed locally and echoed back before they're acted on; documents and screenshots are converted, extracted and filed — as untrusted input, per the write protocol above.
+
+**Configured, not assumed.** `config.yml` defines the person: identity, goals, brief priorities, vault layout. The business and learning modules are optional — disabled, the engine carries no pipeline, no sales nudges, nothing of anyone else's life. A 7-question Telegram wizard (`/setup`) generates a working configuration from scratch.
+
+The system has been red-teamed against prompt injection, path traversal and vault poisoning. Findings and fixes are in the commit history.
 
 ---
 
-## What's in it
+## Comparison
 
-
-Daily Brief at 09:00 — Priorities, deadlines, pipeline updates, relevant news. Reads like a 60-second hype reel. You’re caught up before your coffee’s even hot.
-
-Smart Router — Figures out what needs what. Quick stuff runs on local Gemma. Heavy lifting goes to Claude Code headless. Everything gets queued like a pro. Nothing falls through the cracks.
-
-7 Agents — Research gremlin, Business dude, Learning mode, Memory vault, Pre-call prep, Briefing beast, Task destroyer. Each one prompt-tuned and locked in.
-
-5 Monitors — Silent background watchers. They only ping you when it actually matters (max 2 nudges a day, no spam).
-
-Vault Memory — Eats your entire Obsidian vault. Your real notes, projects, and people become the context. No more generic corporate AI slop. (or getting dumber from long convos)
-
-Telegram Native — Text it like a person. Commands or normal chat. Always on, always ready.
-
-Terminal Dashboard — Riced btop/neofetch-style TUI. Live bot status, pipeline, message feed, alerts, CPU/RAM bars, clock. Opens automatically when you launch a terminal. Q to quit, R to refresh, B to restart the bot.
-
-Zero € per message at scale. Runs on your machine. Adapts to you after a dead-simple 3-question setup. (becuase fck subscription based services)
+| | NZT-48 | Typical "Jarvis" repo |
+|---|---|---|
+| Cost per message | €0 (Claude Code subscription) | Per-token API billing |
+| Memory | Your Obsidian vault | None, or a vector DB to maintain |
+| Proactive | Morning brief + 5 monitors | Responds only when asked |
+| Interface | Telegram, anywhere | A terminal on one machine |
+| Write safety | Approval gates + provenance checks | Unrestricted |
+| Setup | One command | Days of configuration |
 
 ---
 
@@ -96,44 +89,36 @@ cd NZT-48
 ./install.sh
 ```
 
-The installer detects what you have, fills in what's missing, asks 3 questions, and starts the bot. Takes 5 minutes the first time (model download). Under 60 seconds on repeat.
+The installer verifies dependencies, asks a short series of questions, scaffolds the vault and starts the bot. First run takes about five minutes (model download); subsequent runs under a minute.
 
-**You need:**
-- macOS (Linux / WSL support in progress)
-- [Claude Code CLI](https://github.com/anthropics/claude-code) — logged in
-- A Telegram account
+**Requirements:** macOS (Linux/WSL in progress) · [Claude Code CLI](https://github.com/anthropics/claude-code), logged in · a Telegram account.
 
-> **Heads up:** `install.sh` fetches and runs a script from the internet (standard for most CLI tools, same as Homebrew). Review it first if that's your thing: `curl -fsSL https://raw.githubusercontent.com/EuanSmith2/NZT-48/master/install.sh | less`
-
-That's it.
+> **Note:** `install.sh` downloads and executes code, as most CLI installers do. Review it first if you prefer: `curl -fsSL https://raw.githubusercontent.com/EuanSmith2/NZT-48/master/install.sh | less`
 
 ---
 
 ## Tiers
 
-**Free** — everything above. Complete. Works out of the box.
+**Free** — everything described above. Complete, working, MIT-licensed.
 
-**Pro DLC** — the expansion pack. Three premium agent personalities (Sales Beast, Deep Research, Hacker Mode), enhanced brief templates, lead scoring prompts, cold email generator. These are the prompts I actually use.
-
-→ [Get Pro on Gumroad](https://gumroad.com/euansmith/nzt48pro) · Drop the `/premium` folder and restart.
+**Pro** — the prompt pack I run myself: three additional agent personalities, enhanced brief templates, lead scoring and cold outreach generators. [Gumroad](https://gumroad.com/euansmith/nzt48pro) — drop the `premium/` folder in and restart.
 
 ---
 
 ## Roadmap
 
 - [ ] Linux / WSL support
-- [ ] Voice input (Whisper pipeline)
+- [x] Voice input (local Whisper pipeline)
 - [x] Web dashboard
 - [ ] Multi-vault support
-- [ ] Multi-user Telegram (one bot, multiple people)
+- [ ] Multi-user Telegram
 
 ---
 
 <div align="center">
 
-Built by [Euan Smith](https://euansmith.net) · [GitHub Sponsors](https://github.com/sponsors/EuanSmith2) · MIT · [business.euan@hotmail.com](mailto:business.euan@hotmail.com)
+Built by [Euan Smith](https://euansmith.net) · [Sponsors](https://github.com/sponsors/EuanSmith2) · MIT · [business.euan@hotmail.com](mailto:business.euan@hotmail.com)
 
 *"It's not that I'm smarter. I just use more of my brain."*
 
-**Clone it. Install it. Give your AI the pill and watch it start cooking.**
 </div>
