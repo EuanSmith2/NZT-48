@@ -17,3 +17,4 @@ whisper_cache/
 *.jpg
 *.png
 !assets/*.png
+private/

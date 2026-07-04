@@ -15,23 +15,35 @@ from config import (BRIEF_NEWS_TOPICS, BRIEF_PRIORITY_ORDERING, BUSINESS_OFFER,
 _blocks = None
 
 
+PRIVATE = PROMPTS.parent / "private"
+
+
+def _block_file(name: str):
+    """private/blocks/ overrides prompts/blocks/ — personal voice wins."""
+    for p in (PRIVATE / "blocks" / name, PROMPTS / "blocks" / name):
+        if p.exists():
+            return p
+    return PROMPTS / "blocks" / name
+
+
 def blocks() -> dict:
     global _blocks
     if _blocks is None:
-        b = PROMPTS / "blocks"
         _blocks = {
-            "{USER_CONTEXT}": (b / "user_context.txt").read_text(),
-            "{VOICE_RULES}": (b / "voice_rules.txt").read_text(),
-            "{ESCALATION_PROTOCOL}": (b / "escalation.txt").read_text(),
-            "{OUTPUT_ENVELOPE}": (b / "envelope.txt").read_text(),
+            "{USER_CONTEXT}": _block_file("user_context.txt").read_text(),
+            "{VOICE_RULES}": _block_file("voice_rules.txt").read_text(),
+            "{ESCALATION_PROTOCOL}": _block_file("escalation.txt").read_text(),
+            "{OUTPUT_ENVELOPE}": _block_file("envelope.txt").read_text(),
         }
     return _blocks
 
 
 def assemble(name: str) -> str:
-    path = PROMPTS / "agents" / f"{name}.txt"
-    if not path.exists():
-        path = PROMPTS / f"{name}.txt"
+    # private/ (gitignored, personal) beats the shipped generic prompts
+    for path in (PRIVATE / "agents" / f"{name}.txt", PRIVATE / f"{name}.txt",
+                 PROMPTS / "agents" / f"{name}.txt", PROMPTS / f"{name}.txt"):
+        if path.exists():
+            break
     text = path.read_text()
     for k, v in blocks().items():
         text = text.replace(k, v)
@@ -75,12 +87,13 @@ def parse_envelope(raw: str) -> dict:
 
 
 def run(agent: str, message: str, context: str, tier: str = "cc",
-        extra: str = "", untrusted: bool = False) -> dict:
-    system = assemble(agent)
+        extra: str = "", untrusted: bool = False, persona: str = "") -> dict:
+    system = f"{persona}\n\n{assemble(agent)}" if persona else assemble(agent)
     search_block = ""
     if agent == "research":
         import brave_search
         search_block = brave_search.search(message)
+        untrusted = True  # web snippets are attacker-reachable content (audit C1)
     user = f"{context}\n\n{search_block}\n\n{extra}\n\n{USER_NAME}: {message}".strip()
     raw = cc_client.run(user, system=system, model=CC_MAIN,
                         allowed_tools="Read,Glob,Grep", max_turns=12)
@@ -101,7 +114,7 @@ def needs_gate(write: dict) -> bool:
         from config import VAULT
         normalised = str((VAULT / write.get("path", "")).resolve()
                          .relative_to(VAULT.resolve())).replace(os.sep, "/")
-    except (ValueError, Exception):
+    except Exception:
         return True  # can't normalise → treat as gated
     return normalised.startswith(PROTECTED_PREFIXES)
 

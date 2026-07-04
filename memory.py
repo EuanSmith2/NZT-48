@@ -182,6 +182,10 @@ def vault_write(rel_path: str, mode: str, content: str, anchor: str | None = Non
     p.parent.mkdir(parents=True, exist_ok=True)
     if mode == "create":
         if p.exists():
+            # re-create of an existing file with identical content (e.g. /brief
+            # after the cron already wrote today's briefing) must not duplicate
+            if content.strip() and content.strip() in p.read_text(encoding="utf-8"):
+                return f"unchanged {rel_path} (already present)"
             mode = "append"
         else:
             p.write_text(content.rstrip() + "\n", encoding="utf-8")

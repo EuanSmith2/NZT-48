@@ -17,5 +17,6 @@ def send(text: str) -> bool:
             ).raise_for_status()
         return True
     except requests.RequestException as e:
-        print(f"[notify] failed: {e}")
+        # exception text embeds the request URL, which carries the bot token
+        print(f"[notify] failed: {str(e).replace(TELEGRAM_TOKEN, '***')}")
         return False

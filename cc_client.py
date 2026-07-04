@@ -21,7 +21,7 @@ def available() -> bool:
 
 def run(prompt: str, system: str = "", model: str = "sonnet",
         allowed_tools: str = "Read,Glob,Grep", max_turns: int = 12,
-        timeout: int = 240) -> str:
+        timeout: int = 240, cwd: str | None = None) -> str:
     """Blocking headless Claude Code call. Raises RuntimeError on failure so
     the caller's fallback chain (A.7) can act."""
     if not available():
@@ -42,7 +42,7 @@ def run(prompt: str, system: str = "", model: str = "sonnet",
             cmd += ["--append-system-prompt", system]
         env = {k: v for k, v in os.environ.items() if k != "ANTHROPIC_API_KEY"}
         r = subprocess.run(cmd, input=prompt, capture_output=True, text=True,
-                           timeout=timeout, cwd=VAULT, env=env)
+                           timeout=timeout, cwd=cwd or VAULT, env=env)
         if r.returncode != 0:
             raise RuntimeError(f"claude -p exit {r.returncode}: {r.stderr[:300]}")
         data = json.loads(r.stdout)

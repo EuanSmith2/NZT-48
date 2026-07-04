@@ -20,6 +20,14 @@ SLASH_MAP = {
     "setup": ("SYSTEM", 1, None),
     "new": ("SYSTEM", 1, None),
     "cost": ("SYSTEM", 1, None),
+    "persona": ("SYSTEM", 1, None),
+    "drafts": ("SYSTEM", 1, None),
+    "say": ("SYSTEM", 1, None),
+    "browse": ("SYSTEM", 1, None),
+    "connect": ("SYSTEM", 1, None),
+    "chrome": ("SYSTEM", 1, None),
+    "mockup": ("SYSTEM", 1, None),
+    "video": ("SYSTEM", 1, None),
 }
 
 AGENT_FOR_INTENT = {

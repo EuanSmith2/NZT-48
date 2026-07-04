@@ -99,6 +99,7 @@ def compute() -> dict:
         "outstanding": outstanding,
         "income_received": snap.get("income_received_eur", "?"),
         "call_to_client": call_to_client,
+        "mrr": int(float(snap.get("mrr_eur", 0) or 0)),
     }
 
 

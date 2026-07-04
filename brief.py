@@ -78,8 +78,10 @@ def gather() -> dict:
         pri_mtime_days = (time.time() - (VAULT / "00-META/PRIORITIES.md").stat().st_mtime) / 86400
     except OSError:
         pass
+    import streaks
     return {
         "date": datetime.now().strftime("%A %b %-d"),
+        "streaks": streaks.snapshot(),
         "weather": weather(),
         "priorities": pri_items,
         "priorities_stale": pri_mtime_days > 7,
@@ -106,7 +108,10 @@ def fallback_compose(d: dict) -> str:
     lines += ["\nPIPELINE:", f"• {stages} · value €{f['pipeline_value']}",
               f"• €{f['income_received']} of 3-client target · {f['clients_needed']} needed, "
               f"{f['weeks_left']} wks left · calls {f['calls_this_week']}/{f['weekly_call_target']}"]
-    lines += ["\nLEARNING:", "• see 06-LEARNING/platform-progress.md"]
+    st = d.get("streaks", {})
+    lines += ["\nLEARNING:", "• see 06-LEARNING/platform-progress.md",
+              f"\nSTREAKS: study {st.get('learning', 0)}d · calls "
+              f"{st.get('calls', 0)}d · nzt {st.get('usage', 0)}d"]
     if d["news"]:
         lines.append("\nNEWS:")
         lines += [f"• {n}" for n in d["news"]]

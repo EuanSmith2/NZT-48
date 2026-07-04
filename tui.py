@@ -223,6 +223,13 @@ def _gather() -> dict:
         except Exception:
             pass
 
+    strk = {}
+    try:
+        import streaks
+        strk = streaks.compute()
+    except Exception:
+        pass
+
     status, pid = _bot_status()
     return {
         "bot_status": status,
@@ -235,6 +242,7 @@ def _gather() -> dict:
         "alerts": alerts,
         "tasks": tasks,
         "fin": fin,
+        "streaks": strk,
         "sys": _sys_stats(),
         "refreshed": datetime.now().strftime("%H:%M:%S"),
     }
@@ -322,6 +330,17 @@ class StatusPanel(Static):
             pct = s["ram_used"] / s["ram_total"] * 100
             t.append_text(_bar(pct))
             t.append(f"  {s['ram_used']:.1f}/{s['ram_total']:.0f}GB\n", style=G)
+
+        st = d.get("streaks") or {}
+        if st:
+            t.append("\n")
+            _title(t, "STREAKS")
+            for label, key in (("study", "learning"), ("calls", "calls"),
+                               ("nzt", "usage")):
+                n = st.get(key, 0)
+                t.append(f" {label:<6}", style=GRY)
+                t.append(f"{n}d " + ("🔥" if n >= 3 else "") + "\n",
+                         style=G if n else GRY)
 
         u = d.get("usage")
         if u:

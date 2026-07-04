@@ -1,6 +1,7 @@
-"""Voice pipeline: Telegram voice note → whisper (base) → transcript confirm
-→ router dispatch. Transcript is ALWAYS shown before routing so a mishear
-can't silently corrupt the vault.
+"""Voice pipeline: Telegram voice note → whisper (base) → transcript echoed
+→ router dispatch. The transcript is shown ("🎙 heard: …") before the routed
+reply so a mishear is visible immediately; protected vault writes still go
+through the approval gate regardless.
 
 Whisper resolution order (no blind pip installs):
 1. An existing whisper env at ~/.claude/mcp_servers/whisper-env/ (subprocess —

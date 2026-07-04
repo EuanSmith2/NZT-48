@@ -63,6 +63,8 @@ vault:
     - "03-PEOPLE/"
     - "01-PROFILE/"
     - "02-GOALS/"
+    - "00-META/HOT-CACHE.md"       # always-injected context — poisoning target
+    - "00-META/PRIORITIES.md"
   intent_folders:                  # retrieval scope per intent
     BUSINESS: ["04-PROJECTS", "09-FINANCE"]
     PREP: ["03-PEOPLE", "08-EVENTS", "04-PROJECTS"]
@@ -87,3 +89,28 @@ monitoring:
   interval_minutes: 30
   window: { start: "08:00", end: "20:30" }
   max_per_day: 2
+
+# ── private overlay ──────────────────────────────────────────────────────────
+# Any private/*.yml deep-merges over this file and wins on every key.
+# private/ is gitignored: real names, keys, offers, and personalised agent
+# prompts (private/agents/<name>.txt overrides prompts/agents/<name>.txt)
+# live there and never ship.
+
+# ── creative tier (all optional, all off by default) ─────────────────────────
+voice:
+  elevenlabs: { api_key: "", voice_id: "" }   # /say — TTS replies as .mp3
+
+browser:
+  backend: playwright              # playwright | skyvern | chrome (see browser.py)
+
+integrations:
+  canva: { enabled: false }        # /mockup — needs Canva MCP added to claude
+  composio: { enabled: false }     # /connect — needs connect-apps plugin
+
+transports:
+  whatsapp:                        # see transports/whatsapp.py docstring
+    enabled: false
+    token: ""
+    phone_id: ""
+    verify_token: ""
+    allowed: ""                    # YOUR number, digits only — others dropped

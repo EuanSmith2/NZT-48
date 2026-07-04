@@ -16,12 +16,29 @@ if "/opt/homebrew/bin" not in os.environ.get("PATH", ""):
     os.environ["PATH"] = f"{_extra}:{os.environ.get('PATH', '/usr/bin:/bin')}"
 
 
+def _deep_merge(base: dict, over: dict) -> dict:
+    out = dict(base)
+    for k, v in over.items():
+        if isinstance(v, dict) and isinstance(out.get(k), dict):
+            out[k] = _deep_merge(out[k], v)
+        else:
+            out[k] = v
+    return out
+
+
 def _load_cfg() -> dict:
+    """config.yml, then any private/*.yml deep-merged on top. private/ is
+    gitignored — the real, personal config lives there; config.yml stays
+    shippable placeholders."""
+    cfg = {}
     p = NZT / "config.yml"
     if p.exists():
         with open(p) as f:
-            return yaml.safe_load(f) or {}
-    return {}
+            cfg = yaml.safe_load(f) or {}
+    for priv in sorted((NZT / "private").glob("*.yml")):
+        with open(priv) as f:
+            cfg = _deep_merge(cfg, yaml.safe_load(f) or {})
+    return cfg
 
 
 _cfg = _load_cfg()
@@ -79,7 +96,11 @@ LEARNING_PROGRESS_FILE = _learn.get("progress_file", "06-LEARNING/platform-progr
 # vault
 VAULT = Path(os.path.expanduser(_vault.get("path", _user.get("vault", "~/Documents/Notes"))))
 PROTECTED_PREFIXES = tuple(_vault.get("protected_prefixes",
-                                      ["03-PEOPLE/", "01-PROFILE/", "02-GOALS/"]))
+                                      ["03-PEOPLE/", "01-PROFILE/", "02-GOALS/",
+                                       # always-injected context files — a silent
+                                       # append here is persistent prompt poisoning
+                                       "00-META/HOT-CACHE.md",
+                                       "00-META/PRIORITIES.md"]))
 INTENT_FOLDERS = _vault.get("intent_folders", {
     "BUSINESS": ["04-PROJECTS", "09-FINANCE"],
     "PREP": ["03-PEOPLE", "08-EVENTS", "04-PROJECTS"],
@@ -137,6 +158,30 @@ HOT_FILES = {
     "priorities": VAULT / _hot.get("priorities", "00-META/PRIORITIES.md"),
 }
 
+# voice out (ElevenLabs TTS) — keys live in private/*.yml, never in git
+_voice = _cfg.get("voice", {}).get("elevenlabs", {})
+ELEVEN_API_KEY = _voice.get("api_key", "") or os.getenv("ELEVENLABS_API_KEY", "")
+ELEVEN_VOICE_ID = _voice.get("voice_id", "") or os.getenv("ELEVENLABS_VOICE_ID", "")
+
+# browser agent backend: skyvern (vision, unknown sites) | playwright | chrome
+_browser = _cfg.get("browser", {})
+BROWSER_BACKEND = _browser.get("backend", "playwright")
+# MCP tool prefixes per backend — what cc_client passes as --allowedTools
+BROWSER_TOOLS = _browser.get("tools", {
+    "playwright": "mcp__playwright__*",
+    "skyvern": "mcp__skyvern__*",
+    "chrome": "mcp__claude-chrome__*",
+})
+
+# integrations (Canva MCP, Composio connect-apps) — off unless configured
+_integrations = _cfg.get("integrations", {})
+CANVA_ENABLED = bool(_integrations.get("canva", {}).get("enabled", False))
+COMPOSIO_ENABLED = bool(_integrations.get("composio", {}).get("enabled", False))
+
+# transports
+_transports = _cfg.get("transports", {})
+WHATSAPP = _transports.get("whatsapp", {})  # enabled, token, phone_id, verify_token
+
 # claude usage bar (TUI) — reads the LOCAL logged-in account's ~/.claude only
 _claude = _cfg.get("claude", {})
 CLAUDE_USAGE = _claude.get("usage", "auto")            # auto | off
@@ -145,8 +190,9 @@ CLAUDE_WINDOW_BUDGET = int(_claude.get("window_budget_tokens", 500_000))
 # monitoring
 MON_ENABLED = _mon.get("enabled", True)
 MON_INTERVAL = _mon.get("interval_minutes", 30)
-MON_START = _mon.get("window_start", "08:00")
-MON_END = _mon.get("window_end", "20:30")
+_mon_win = _mon.get("window", {})  # both `window: {start,end}` and flat keys
+MON_START = _mon.get("window_start", _mon_win.get("start", "08:00"))
+MON_END = _mon.get("window_end", _mon_win.get("end", "20:30"))
 MON_MAX_PER_DAY = _mon.get("max_per_day", 2)
 
 

@@ -1,13 +1,9 @@
 """SMTP email sender — used after user approves a draft in Telegram."""
-import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-SMTP_HOST = os.getenv("SMTP_HOST", "smtp-mail.outlook.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER", "")
-SMTP_PASS = os.getenv("SMTP_PASS", "")
+from config import SMTP_HOST, SMTP_PASS, SMTP_PORT, SMTP_USER
 
 
 def configured() -> bool:

@@ -95,19 +95,22 @@ def set_summary(upto: int, text: str):
 
 
 # --- single-backend lock (A.6-2): one generation backend at a time ---
-LOCK_STALE_S = 300  # must exceed cc_client max timeout (240s)
+LOCK_STALE_S = 900  # must exceed the longest cc call (browser agent: 600s)
 
 
 def acquire_lock(holder: str, wait_s: float = 30) -> bool:
     deadline = time.time() + wait_s
     while time.time() < deadline:
         with db() as con:
-            row = con.execute("SELECT holder, ts FROM locks WHERE name='backend'").fetchone()
-            if row is None or time.time() - row[1] > LOCK_STALE_S or row[0] == holder:
-                con.execute(
-                    "INSERT OR REPLACE INTO locks(name, holder, ts) VALUES('backend',?,?)",
-                    (holder, time.time()),
-                )
+            # single atomic statement — the old SELECT-then-INSERT let two
+            # processes (bot + monitors cron) both grab the lock
+            cur = con.execute(
+                "INSERT INTO locks(name, holder, ts) VALUES('backend',?,?) "
+                "ON CONFLICT(name) DO UPDATE SET holder=excluded.holder, ts=excluded.ts "
+                "WHERE locks.holder=excluded.holder OR excluded.ts - locks.ts > ?",
+                (holder, time.time(), LOCK_STALE_S),
+            )
+            if cur.rowcount:
                 return True
         time.sleep(0.5)
     return False
@@ -153,6 +156,14 @@ def get_draft(draft_id: int):
     if not row:
         return None
     return {"kind": row[0], "content": row[1], "payload": json.loads(row[2]), "status": row[3]}
+
+
+def pending_drafts() -> list[dict]:
+    with db() as con:
+        rows = con.execute(
+            "SELECT id, kind, content FROM drafts WHERE status='pending' ORDER BY id DESC"
+        ).fetchall()
+    return [{"id": r[0], "kind": r[1], "content": r[2]} for r in rows]
 
 
 def set_draft_status(draft_id: int, status: str):

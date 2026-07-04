@@ -19,6 +19,7 @@ PIPELINE_TEMPLATE = """# Web Business Pipeline
 target_clients: 0
 clients_won: 0
 income_received_eur: 0
+mrr_eur: 0
 deadline: 2026-12-31
 
 ## Assumptions
