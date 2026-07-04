@@ -458,7 +458,7 @@ class NZT48TUI(App):
         if _HAS_PSUTIL:
             psutil.cpu_percent(interval=None)  # prime the counter
         self._refresh_data()
-        self.set_interval(10, self._refresh_data)
+        self.set_interval(30, self._refresh_data)
         self.set_interval(1, self._tick_clock)
 
     def _tick_clock(self) -> None:
