@@ -16,13 +16,13 @@
 
 </div>
 
-**One line, whole system** — hover the block, hit <kbd>⧉</kbd>, paste in a terminal:
+— hover the block, hit <kbd>⧉</kbd>, paste in a terminal:
 
 ```bash
 git clone https://github.com/EuanSmith2/NZT-48 && cd NZT-48 && ./install.sh
 ```
 
-Or hand it straight to your AI and let it do the work:
+Or hand it straight to your AI:
 
 ```text
 Clone github.com/EuanSmith2/NZT-48, run ./install.sh, and walk me through setup.
