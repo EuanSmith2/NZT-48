@@ -16,7 +16,7 @@
 
 </div>
 
-— hover the block, hit <kbd>⧉</kbd>, paste in a terminal:
+hover the block, hit <kbd>⧉</kbd>, paste in a terminal:
 
 ```bash
 git clone https://github.com/EuanSmith2/NZT-48 && cd NZT-48 && ./install.sh
