@@ -213,6 +213,17 @@ start_bot() {
   ok "bot started  (com.nzt48)"
 }
 
+count_install() {
+  # anonymous install counter (README badge). One bare HTTP hit, no data.
+  # Opt out: NZT_NO_TELEMETRY=1 ./install.sh
+  if [ -z "${NZT_NO_TELEMETRY:-}" ]; then
+    curl -s -m 5 "https://api.counterapi.dev/v1/nzt48-installs/installs/up" >/dev/null 2>&1 || true
+    ok "counted (anonymous ping — NZT_NO_TELEMETRY=1 to skip)"
+  else
+    skip "telemetry skipped"
+  fi
+}
+
 # ── run ───────────────────────────────────────────────────────────────────────
 
 check_python
@@ -229,6 +240,7 @@ onboarding
 smoke_test
 scaffold_vault
 start_bot
+count_install
 
 printf "\n${G}NZT-48 is live.${N}\n"
 printf "${D}Built by Euan Smith · github.com/EuanSmith2 · MIT${N}\n\n"

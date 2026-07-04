@@ -12,8 +12,21 @@
 ![Claude Code](https://img.shields.io/badge/Claude_Code-required-f59e0b?style=flat-square&labelColor=0d0d0d)
 ![Telegram](https://img.shields.io/badge/Telegram-native-58a6ff?style=flat-square&labelColor=0d0d0d)
 ![Obsidian](https://img.shields.io/badge/Obsidian-memory-7c3aed?style=flat-square&labelColor=0d0d0d)
+![Installs](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.counterapi.dev%2Fv1%2Fnzt48-installs%2Finstalls%2F&query=count&label=installs&color=00ff66&style=flat-square&labelColor=0d0d0d)
 
 </div>
+
+**One line, whole system** — hover the block, hit <kbd>⧉</kbd>, paste in a terminal:
+
+```bash
+git clone https://github.com/EuanSmith2/NZT-48 && cd NZT-48 && ./install.sh
+```
+
+Or hand it straight to your AI and let it do the work:
+
+```text
+Clone github.com/EuanSmith2/NZT-48, run ./install.sh, and walk me through setup.
+```
 
 ---
 
@@ -94,6 +107,8 @@ The installer verifies dependencies, asks a short series of questions, scaffolds
 **Requirements:** macOS (Linux/WSL in progress) · [Claude Code CLI](https://github.com/anthropics/claude-code), logged in · a Telegram account.
 
 > **Note:** `install.sh` downloads and executes code, as most CLI installers do. Review it first if you prefer: `curl -fsSL https://raw.githubusercontent.com/EuanSmith2/NZT-48/master/install.sh | less`
+>
+> On success it sends one anonymous ping to increment the installs counter above — a bare HTTP hit, no data. `NZT_NO_TELEMETRY=1 ./install.sh` skips it.
 
 ---
 
