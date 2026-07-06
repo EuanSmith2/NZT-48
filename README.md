@@ -1,138 +1,154 @@
 <div align="center">
 
-<img src="assets/swallow.gif" width="200" alt="NZT-48" />
-<img src="assets/brain.gif" width="200" alt="brain scan" />
-
-# NZT-48
-
-`// your AI took the pill`
-
-![Free Tier](https://img.shields.io/badge/free_tier-complete-00ff66?style=flat-square&labelColor=0d0d0d)
-![Pro DLC](https://img.shields.io/badge/pro_DLC-gumroad-a855f7?style=flat-square&labelColor=0d0d0d)
-![Claude Code](https://img.shields.io/badge/Claude_Code-required-f59e0b?style=flat-square&labelColor=0d0d0d)
-![Telegram](https://img.shields.io/badge/Telegram-native-58a6ff?style=flat-square&labelColor=0d0d0d)
-![Obsidian](https://img.shields.io/badge/Obsidian-memory-7c3aed?style=flat-square&labelColor=0d0d0d)
-![Installs](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.counterapi.dev%2Fv1%2Fnzt48-installs%2Finstalls%2F&query=count&label=installs&color=00ff66&style=flat-square&labelColor=0d0d0d)
+<img src="assets/banner.png" width="100%" alt="NZT-48 — Your agent. Your vault. Your rules." />
 
 </div>
 
-hover the block, hit <kbd>⧉</kbd>, paste in a terminal:
+---
+
+Your agent. Your vault. Your rules.
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-00ff88?style=flat-square&labelColor=0a0a0a)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-00ff88?style=flat-square&labelColor=0a0a0a)](requirements.txt)
+[![Built on Claude Code](https://img.shields.io/badge/built_on-Claude_Code-00ff88?style=flat-square&labelColor=0a0a0a)](https://github.com/anthropics/claude-code)
+[![Interface: Telegram](https://img.shields.io/badge/interface-Telegram-00ff88?style=flat-square&labelColor=0a0a0a)](https://telegram.org)
+[![Installs](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.counterapi.dev%2Fv1%2Fnzt48-installs%2Finstalls%2F&query=count&label=installs&color=00ff88&style=flat-square&labelColor=0a0a0a)](https://github.com/EuanSmith2/NZT-48)
+
+[Features](#features) · [Install](#install) · [Memory](#memory--the-part-that-compounds) · [Docs](#documentation)
+
+---
+
+NZT-48 is a self-hosted personal AI system that runs on your own machine, keeps its memory in your Obsidian vault, and reaches you through Telegram. Seven specialised agents handle your day — briefing, research, business, tasks, learning, pre-call and memory — each acting only with your explicit approval. No cloud dependency beyond your Claude Code subscription. No per-token bill. One command sets it up:
 
 ```bash
 git clone https://github.com/EuanSmith2/NZT-48 && cd NZT-48 && ./install.sh
 ```
 
-Or hand it straight to your AI:
+## Features
 
-```text
-Clone github.com/EuanSmith2/NZT-48, run ./install.sh, and walk me through setup.
+- 🧠 **Morning brief** — 07:30 daily digest assembled before you're awake: tasks, pipeline, weather, streaks, anything waiting on you.
+- 🤖 **Seven agents** — briefing, research, business, memory, pre-call, learning, task; each owns its domain, none overlaps.
+- 📱 **Phone-first** — Telegram is the only interface. No dashboard, no browser tab to maintain; send a message, get a response.
+- 🗂️ **Vault memory** — everything lands in your own Obsidian markdown. Readable offline, searchable forever, exportable any time.
+- 🛡️ **Approval gate** — every outbound action — email drafts, vault edits, file moves — shows exactly what will happen before it does.
+- 🎙️ **Voice in** — voice notes transcribed locally and echoed back before they're filed or acted on; nothing runs unseen.
+- 💼 **Business layer** — cold outreach drafts, pipeline tracking, lead scoring, follow-up nudges. Optional; off by default.
+- ⚡ **Two-tier routing** — trivial exchanges hit a local 3B model in under a second; anything that reasons goes to Claude Code headless.
+- 📊 **Zero per-token billing** — runs on a Claude Code subscription. Marginal cost per message: nothing extra.
+- 🔒 **Private overlay** — your keys, identity and personalised prompts stay in `private/` (gitignored); the public repo stays clean.
+
+## Memory — the part that compounds
+
+```
+  07:30 brief
+       ↓
+  HOT-CACHE.md ──── always in every prompt ────→  agents know you before searching
+  (≤ 1,200 chars)
+       ↑
+  warm retrieval ── scored per query ──────────→  research · pre-call agents
+       ↑
+  vault writes ──── approval gate ─────────────→  protected paths need a tap
+       ↑
+  untrusted input ─ docs · web · screenshots ─→  gated regardless of destination
 ```
 
----
+- Every message lands verbatim in a daily markdown log — nothing is paraphrased on arrival.
+- One core file, `HOT-CACHE.md` (≤ 1,200 chars), rides in every prompt — the system knows the current version of you before it searches anything.
+- Protected paths — `01-PROFILE/`, `02-GOALS/`, `03-PEOPLE/`, `HOT-CACHE.md` — require an explicit tap before any write. A prompt cannot silently rewrite your goals.
+- Any content that arrived from outside — a PDF, a forwarded message, a web snippet — is treated as untrusted. Its writes are gated regardless of destination. This closed a real prompt-injection hole; the fix is in the commit history.
 
-NZT-48 is a self-hosted personal AI system. It runs on your machine, keeps its memory in your own notes, and reaches you through Telegram. It briefs you each morning before you're up, watches your deadlines and pipeline in the background, drafts what needs drafting — and asks permission before anything leaves your machine.
-
-Marginal cost per message: zero. It runs on a Claude Code subscription and a small local model, not per-token API billing.
-
----
-
-## Demo
-
-```
-$ /brief
-
-USER — Thu 02 Jul · cloudy, 17°C
-
-TODAY
-  ↳ Follow up with client re: invoice
-  ↳ Make 3 cold calls before 5pm
-  ↳ Complete module 7 assessment
-
-PIPELINE
-  ↳ Murphy & Co — proposal sent, awaiting reply
-  ↳ €400 of target, 8 weeks left
-
-LEARNING
-  ↳ Platform — active path · day 12 streak
-
-WAITING ON
-  ↳ Payment from client (invoiced Jul 1)
-```
-
----
-
-## Design
-
-**Two-speed routing.** A deterministic router classifies every message. Trivial exchanges run on a local 3B model in under a second; anything that thinks runs on Claude Code headless, with your vault mounted as context. The local tier knows its limits — when uncertain, it escalates rather than answers.
-
-**Memory is your vault.** Your Obsidian notes are the context: hot-cached state, scored retrieval per query, and a strict write protocol. Appends are automatic; edits require approval; and any write originating from ingested content — a PDF, a screenshot, a web page — is gated regardless of destination. External documents cannot silently become memories.
-
-**Seven agents, one contract.** Briefing, research, business, learning, memory, pre-call and task agents share a single output envelope and a single escalation rule: uncertain means ask, never guess.
-
-**Proactive, with a ceiling.** Five background monitors; a hard maximum of two unprompted messages a day. Deadlines outrank nudges, nudges outrank streaks, and anything suppressed surfaces in the next brief instead of disappearing.
-
-**Approval gates on everything outbound.** Emails, vault edits, file moves — each shows exactly what will happen before it happens, down to the recipient's domain.
-
-**Multi-modal in.** Voice notes are transcribed locally and echoed back before they're acted on; documents and screenshots are converted, extracted and filed — as untrusted input, per the write protocol above.
-
-**Configured, not assumed.** `config.yml` defines the person: identity, goals, brief priorities, vault layout. The business and learning modules are optional — disabled, the engine carries no pipeline, no sales nudges, nothing of anyone else's life. A 7-question Telegram wizard (`/setup`) generates a working configuration from scratch.
-
-The system has been red-teamed against prompt injection, path traversal and vault poisoning. Findings and fixes are in the commit history.
-
----
-
-## Comparison
-
-| | NZT-48 | Typical "Jarvis" repo |
-|---|---|---|
-| Cost per message | €0 (Claude Code subscription) | Per-token API billing |
-| Memory | Your Obsidian vault | None, or a vector DB to maintain |
-| Proactive | Morning brief + 5 monitors | Responds only when asked |
-| Interface | Telegram, anywhere | A terminal on one machine |
-| Write safety | Approval gates + provenance checks | Unrestricted |
-| Setup | One command | Days of configuration |
-
----
+Full vault architecture and retrieval internals: `docs/memory.md`.
 
 ## Install
 
+1. Get a bot token from [@BotFather](https://t.me/BotFather).
+2. Install [Claude Code](https://github.com/anthropics/claude-code) and log in once.
+3. Run the installer on macOS (Linux / WSL in progress):
+
 ```bash
-git clone https://github.com/EuanSmith2/NZT-48
-cd NZT-48
-./install.sh
+git clone https://github.com/EuanSmith2/NZT-48 && cd NZT-48 && ./install.sh
 ```
 
-The installer verifies dependencies, asks a short series of questions, scaffolds the vault and starts the bot. First run takes about five minutes (model download); subsequent runs under a minute.
+4. Message your bot. The wizard reads your Telegram ID from that first message, generates `config.yml`, scaffolds the vault and starts the agents. First run ~5 minutes (model pull); subsequent runs under a minute.
 
-**Requirements:** macOS (Linux/WSL in progress) · [Claude Code CLI](https://github.com/anthropics/claude-code), logged in · a Telegram account.
+Headless installs pass `--skip-setup` or `--non-interactive`. Full walkthrough: `docs/install.md`.
 
-> **Note:** `install.sh` downloads and executes code, as most CLI installers do. Review it first if you prefer: `curl -fsSL https://raw.githubusercontent.com/EuanSmith2/NZT-48/master/install.sh | less`
->
-> On success it sends one anonymous ping to increment the installs counter above — a bare HTTP hit, no data. `NZT_NO_TELEMETRY=1 ./install.sh` skips it.
+## How it works
 
----
+```
+  Telegram
+      ↓
+  router.py ──── trivial ──→  local 3B model  (<1s, on-device)
+      │
+      └──── thinks ───→  Claude Code headless
+                               ↓
+                           agents.py
+                               ↓
+                       approval gate  (if outbound write)
+                               ↓
+                       vault / action
+```
+
+Long-poll Telegram means no public HTTPS endpoint, no domain, no webhook. The bot and five background monitors run as launchd units on your Mac — operations in `docs/deploy.md`.
+
+## Cost
+
+No per-token billing. One subscription covers everything:
+
+| Component | What you pay |
+|---|---|
+| Claude Code | Anthropic subscription — fixed monthly |
+| Local routing model | Nothing — runs on your hardware |
+| Telegram bot | Free |
+| Obsidian vault | Free (desktop app) |
+| Voice transcription | Local via `faster-whisper` — no API key |
+
+Marginal cost per message: **€0 extra** beyond the subscription.
+
+## Security
+
+```
+  inbound ── sanitiser ──→  agent ──→  approval gate ──→  vault / send
+  (web · docs · photos)       ↑              ↓
+                         untrusted?     tap required
+                          gated write
+```
+
+Inbound content passes a prompt-injection sanitiser before the model reads it. Outbound actions — emails, vault edits, file moves — surface a plain-language summary and wait for a yes/no. The allowlist fails closed: an empty list answers nobody. Your vault is plain markdown you own. Security internals: `docs/security.md`.
+
+## Commands
+
+| In Telegram | On the machine |
+|---|---|
+| `/brief` · `/task` · `/research` | `python bot.py` |
+| `/setup` · `/new` · `/usage` | `python bot.py --dry-run` |
+| `/pipeline` · `/cram` · `/status` | `tail -f logs/nzt.log` |
+
+Full reference including `/usage` breakdowns by agent and by day: `docs/cli.md`.
 
 ## Tiers
 
-**Free** — everything described above. Complete, working, MIT-licensed.
+**Free** — everything above. Complete, working, MIT-licensed.
 
-**Pro** — the prompt pack I run myself: three additional agent personalities, enhanced brief templates, lead scoring and cold outreach generators. [Gumroad](https://gumroad.com/euansmith/nzt48pro) — drop the `premium/` folder in and restart.
+**Pro** — the prompt pack running on the original system: three additional agent profiles, enhanced brief templates, lead scoring and cold outreach generators. Drop the `premium/` folder in and restart.
 
----
+## Documentation
 
-## Roadmap
+[Install](docs/install.md) · [Configuration](docs/config.md) · [Memory](docs/memory.md) · [Security](docs/security.md) · [Deploy](docs/deploy.md) · [CLI](docs/cli.md) · [Extending](docs/extending.md)
 
-- [ ] Linux / WSL support
-- [x] Voice input (local Whisper pipeline)
-- [x] Web dashboard
-- [ ] Multi-vault support
-- [ ] Multi-user Telegram
+## Built on
+
+Claude Code headless runs every agent call — `ANTHROPIC_API_KEY` is stripped from the child environment, so there is no per-token billing path. Python 3.11+, Ollama for the routing tier, SQLite for state, `faster-whisper` for voice. The vault is plain markdown — nothing proprietary, nothing to migrate from.
+
+## License
+
+MIT — take it, fork it, run it on your own machine; just don't hold anyone responsible if something breaks.
 
 ---
 
 <div align="center">
 
-Built by [Euan Smith](https://euansmith.net) · [Sponsors](https://github.com/sponsors/EuanSmith2) · MIT · [business.euan@hotmail.com](mailto:business.euan@hotmail.com)
+Built by [Euan Smith](https://euansmith.net) &nbsp;·&nbsp; [MIT](LICENSE) &nbsp;·&nbsp; open to sponsors
 
 *"It's not that I'm smarter. I just use more of my brain."*
 
