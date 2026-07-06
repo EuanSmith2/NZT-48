@@ -113,6 +113,39 @@ def connection_status() -> str:
     return "\n".join(lines)
 
 
+# ── Outlook (email) ──────────────────────────────────────────────────────────
+# Sender identity comes from the connected Outlook account on Composio —
+# never hardcoded here (private repo rule: the address lives in config/OAuth).
+
+def outlook_draft_email(to: str, subject: str, body: str) -> dict:
+    """Stage an email DRAFT in the connected Outlook mailbox (write-gated).
+
+    Example:
+        staged = outlook_draft_email("owner@cafe.ie", "your booking link",
+                                     "Hey — the booking link on your site 404s…")
+        approval_gate.stage(staged)   # user must tap approve
+    """
+    return _staged(
+        "outlook_draft_email", "OUTLOOK_OUTLOOK_CREATE_DRAFT",
+        {"to_email": to, "subject": subject, "body": body, "is_html": False},
+        f"📧 CREATE DRAFT (outlook)\nto: {to}\nsubject: {subject}\n---\n{body[:800]}")
+
+
+def outlook_send_email(to: str, subject: str, body: str) -> dict:
+    """Stage a SEND from the connected Outlook mailbox (write-gated).
+
+    Example:
+        staged = outlook_send_email("owner@cafe.ie", "one-page mock-up",
+                                    "Said I'd send this over — link below.")
+    """
+    domain = to.rsplit("@", 1)[-1] if "@" in to else "?"
+    return _staged(
+        "outlook_send_email", "OUTLOOK_OUTLOOK_SEND_EMAIL",
+        {"to_email": to, "subject": subject, "body": body, "is_html": False},
+        f"📧 SEND EMAIL (outlook)\nto: {to}\n⚠️ sends to domain: {domain.upper()}\n"
+        f"subject: {subject}\n---\n{body[:800]}")
+
+
 # ── tool registry ────────────────────────────────────────────────────────────
 # name → (function, "read"|"write"). Agents request tools by these names in
 # the envelope's "actions" list; anything not in here is refused.
@@ -124,6 +157,12 @@ def _register(name: str, fn, kind: str, slug: str = ""):
     TOOLS[name] = (fn, kind)
     if kind == "write" and slug:
         _WRITE_SLUGS.append({"tool": name, "slug": slug})
+
+
+_register("outlook_draft_email", outlook_draft_email, "write",
+          "OUTLOOK_OUTLOOK_CREATE_DRAFT")
+_register("outlook_send_email", outlook_send_email, "write",
+          "OUTLOOK_OUTLOOK_SEND_EMAIL")
 
 
 def run_tool_request(tool: str, args: dict) -> tuple[str, object]:
