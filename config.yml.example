@@ -105,7 +105,14 @@ browser:
 
 integrations:
   canva: { enabled: false }        # /mockup — needs Canva MCP added to claude
-  composio: { enabled: false }     # /connect — needs connect-apps plugin
+  composio:                        # tools/composio_tools.py — Outlook, HubSpot,
+    enabled: false                 #   Google Calendar, GitHub, Notion
+    api_key: ""                    # app.composio.dev → Settings → API key.
+                                   # (or `composio_api_key:` top-level in private/*.yml)
+    entity_id: "default"
+    default_repo: ""               # owner/repo fallback for the GitHub tools
+    notion_database_id: ""         # target database for notion_create_page
+    calendar_id: "primary"         # Google Calendar id for event tools
 
 transports:
   whatsapp:                        # see transports/whatsapp.py docstring

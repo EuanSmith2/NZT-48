@@ -150,12 +150,13 @@ def save_draft(kind: str, content: str, payload: dict) -> int:
 def get_draft(draft_id: int):
     with db() as con:
         row = con.execute(
-            "SELECT kind, content, payload_json, status FROM drafts WHERE id=?",
+            "SELECT kind, content, payload_json, status, ts FROM drafts WHERE id=?",
             (draft_id,),
         ).fetchone()
     if not row:
         return None
-    return {"kind": row[0], "content": row[1], "payload": json.loads(row[2]), "status": row[3]}
+    return {"kind": row[0], "content": row[1], "payload": json.loads(row[2]),
+            "status": row[3], "ts": row[4]}
 
 
 def pending_drafts() -> list[dict]:

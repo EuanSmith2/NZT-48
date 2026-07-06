@@ -176,7 +176,17 @@ BROWSER_TOOLS = _browser.get("tools", {
 # integrations (Canva MCP, Composio connect-apps) — off unless configured
 _integrations = _cfg.get("integrations", {})
 CANVA_ENABLED = bool(_integrations.get("canva", {}).get("enabled", False))
-COMPOSIO_ENABLED = bool(_integrations.get("composio", {}).get("enabled", False))
+_composio = _integrations.get("composio", {})
+COMPOSIO_ENABLED = bool(_composio.get("enabled", False))
+# key sources, first wins: top-level composio_api_key (private/*.yml),
+# integrations.composio.api_key, env. Never hardcode — private/ only.
+COMPOSIO_API_KEY = (_cfg.get("composio_api_key", "")
+                    or _composio.get("api_key", "")
+                    or os.getenv("COMPOSIO_API_KEY", ""))
+COMPOSIO_ENTITY = _composio.get("entity_id", "default")
+COMPOSIO_DEFAULT_REPO = _composio.get("default_repo", "")      # owner/repo
+COMPOSIO_NOTION_DB = _composio.get("notion_database_id", "")
+COMPOSIO_CALENDAR_ID = _composio.get("calendar_id", "primary")
 
 # transports
 _transports = _cfg.get("transports", {})
