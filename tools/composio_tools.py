@@ -195,6 +195,79 @@ def hubspot_log_note(contact_id: str, note: str) -> dict:
         f"📝 LOG CRM NOTE (hubspot)\ncontact: {contact_id}\n---\n{note[:600]}")
 
 
+# ── Google Calendar ──────────────────────────────────────────────────────────
+
+def calendar_create_event(title: str, start_iso: str, duration_minutes: int = 60,
+                          description: str = "", attendees: list | None = None,
+                          location: str = "") -> dict:
+    """Stage a Google Calendar event (write-gated).
+
+    Example:
+        staged = calendar_create_event("Call — Corner Cafe site",
+                                       "2026-07-08T14:00:00", 30,
+                                       description="walk through the mock-up")
+    """
+    payload = {
+        "calendar_id": COMPOSIO_CALENDAR_ID,
+        "summary": title,
+        "start_datetime": start_iso,
+        "event_duration_hour": duration_minutes // 60,
+        "event_duration_minutes": duration_minutes % 60,
+        "timezone": TIMEZONE or "Europe/Dublin",
+    }
+    if description:
+        payload["description"] = description
+    if attendees:
+        payload["attendees"] = attendees
+    if location:
+        payload["location"] = location
+    who = f"\nattendees: {', '.join(attendees)}" if attendees else ""
+    return _staged(
+        "calendar_create_event", "GOOGLECALENDAR_CREATE_EVENT", payload,
+        f"📅 CREATE EVENT (google calendar)\n{title}\n"
+        f"start: {start_iso} · {duration_minutes} min{who}"
+        + (f"\n{description[:200]}" if description else ""))
+
+
+def calendar_list_events(days: int = 7) -> str:
+    """READ — upcoming events in the next `days` days; runs immediately.
+
+    Example:
+        text = calendar_list_events(3)   # "Tue 08 14:00 Call — Corner Cafe…"
+    """
+    now = datetime.now().astimezone()
+    data = _execute("GOOGLECALENDAR_FIND_EVENT", {
+        "calendar_id": COMPOSIO_CALENDAR_ID,
+        "timeMin": now.isoformat(timespec="seconds"),
+        "timeMax": (now + timedelta(days=days)).isoformat(timespec="seconds"),
+        "single_events": True,
+        "order_by": "startTime",
+    })
+    items = _find_items(data)
+    if not items:
+        return f"no events in the next {days} days"
+    lines = []
+    for ev in items[:15]:
+        start = (ev.get("start") or {})
+        when = start.get("dateTime", start.get("date", "?"))[:16].replace("T", " ")
+        lines.append(f"• {when} — {ev.get('summary', '(no title)')}")
+    return "\n".join(lines)
+
+
+def _find_items(data: dict) -> list:
+    """Composio nests list payloads differently per app/version — dig for it."""
+    for key in ("items", "events", "event_data"):
+        v = data.get(key)
+        if isinstance(v, list):
+            return v
+        if isinstance(v, dict) and isinstance(v.get("event_data"), list):
+            return v["event_data"]
+    rd = data.get("response_data")
+    if isinstance(rd, dict):
+        return _find_items(rd)
+    return []
+
+
 # ── tool registry ────────────────────────────────────────────────────────────
 # name → (function, "read"|"write"). Agents request tools by these names in
 # the envelope's "actions" list; anything not in here is refused.
@@ -208,6 +281,9 @@ def _register(name: str, fn, kind: str, slug: str = ""):
         _WRITE_SLUGS.append({"tool": name, "slug": slug})
 
 
+_register("calendar_create_event", calendar_create_event, "write",
+          "GOOGLECALENDAR_CREATE_EVENT")
+_register("calendar_list_events", calendar_list_events, "read")
 _register("hubspot_create_contact", hubspot_create_contact, "write",
           "HUBSPOT_CREATE_CONTACT_OBJECT_WITH_PROPERTIES")
 _register("hubspot_log_note", hubspot_log_note, "write",
