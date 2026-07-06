@@ -146,6 +146,55 @@ def outlook_send_email(to: str, subject: str, body: str) -> dict:
         f"subject: {subject}\n---\n{body[:800]}")
 
 
+# ── HubSpot (CRM) ────────────────────────────────────────────────────────────
+
+def hubspot_create_contact(email: str, first_name: str, last_name: str = "",
+                           company: str = "", phone: str = "") -> dict:
+    """Stage a new HubSpot contact (write-gated).
+
+    Example:
+        staged = hubspot_create_contact("owner@cafe.ie", "Mary", "Byrne",
+                                        company="The Corner Cafe", phone="+3531…")
+    """
+    props = {"email": email, "firstname": first_name}
+    if last_name:
+        props["lastname"] = last_name
+    if company:
+        props["company"] = company
+    if phone:
+        props["phone"] = phone
+    human = " · ".join(f"{k}: {v}" for k, v in props.items())
+    return _staged(
+        "hubspot_create_contact", "HUBSPOT_CREATE_CONTACT_OBJECT_WITH_PROPERTIES",
+        {"properties": props},
+        f"👤 CREATE CRM CONTACT (hubspot)\n{human}")
+
+
+def hubspot_log_note(contact_id: str, note: str) -> dict:
+    """Stage a note/activity on a HubSpot contact (write-gated).
+
+    Uses the generic CRM-objects action with objectType=notes, associated to
+    the contact (association typeId 202 = note→contact).
+
+    Example:
+        staged = hubspot_log_note("union://cafe/12345",
+                                  "Called 14:10 — Fridays are dead, wants booking.")
+    """
+    ts = datetime.now().astimezone().isoformat(timespec="seconds")
+    payload = {
+        "objectType": "notes",
+        "properties": {"hs_note_body": note, "hs_timestamp": ts},
+        "associations": [{
+            "to": {"id": contact_id},
+            "types": [{"associationCategory": "HUBSPOT_DEFINED",
+                       "associationTypeId": 202}],
+        }],
+    }
+    return _staged(
+        "hubspot_log_note", "HUBSPOT_CREATE_CRM_OBJECT_WITH_PROPERTIES", payload,
+        f"📝 LOG CRM NOTE (hubspot)\ncontact: {contact_id}\n---\n{note[:600]}")
+
+
 # ── tool registry ────────────────────────────────────────────────────────────
 # name → (function, "read"|"write"). Agents request tools by these names in
 # the envelope's "actions" list; anything not in here is refused.
@@ -159,6 +208,10 @@ def _register(name: str, fn, kind: str, slug: str = ""):
         _WRITE_SLUGS.append({"tool": name, "slug": slug})
 
 
+_register("hubspot_create_contact", hubspot_create_contact, "write",
+          "HUBSPOT_CREATE_CONTACT_OBJECT_WITH_PROPERTIES")
+_register("hubspot_log_note", hubspot_log_note, "write",
+          "HUBSPOT_CREATE_CRM_OBJECT_WITH_PROPERTIES")
 _register("outlook_draft_email", outlook_draft_email, "write",
           "OUTLOOK_OUTLOOK_CREATE_DRAFT")
 _register("outlook_send_email", outlook_send_email, "write",
