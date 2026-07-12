@@ -171,6 +171,14 @@ async def dispatch(update: Update, message: str, route: dict,
     elif route.get("queue"):
         # score 5 / TASK: too heavy for headless — flag to interactive Claude Code
         reply = cc_client.queue_task(message, route["reason"])
+    elif route["intent"] == "DEVILS":
+        status = await update.effective_chat.send_message("🕊🐍 on it — diplomat + machiavelli")
+        import devils_advocate
+        reply = await asyncio.to_thread(devils_advocate.run, message, context)
+        try:
+            await status.delete()
+        except Exception:
+            pass
     elif agent:
         status = await update.effective_chat.send_message(f"🔎 on it — {agent} agent (claude code)")
         try:
@@ -436,6 +444,9 @@ def make_command(cmd: str):
             action = await asyncio.to_thread(finance.one_action)
             await send(update, f"▶️ {action}")
             return
+        if cmd == "devils" and not args:
+            await send(update, "usage: /devils <question> — e.g. /devils client won't pay")
+            return
         if cmd == "pipeline" and not args:
             f = await asyncio.to_thread(finance.compute)
             stages = " · ".join(f"{k}:{v}" for k, v in f["stages"].items()) or "empty"
@@ -478,6 +489,7 @@ def main():
             BotCommand("connect",  "Link apps via Composio"),
             BotCommand("cost",     "Spend today"),
             BotCommand("new",      "Fresh session"),
+            BotCommand("devils",   "Diplomat + machiavelli second opinion"),
         ])
 
     app = Application.builder().token(TELEGRAM_TOKEN).post_init(post_init).build()

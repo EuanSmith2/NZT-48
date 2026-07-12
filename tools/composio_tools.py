@@ -268,6 +268,46 @@ def _find_items(data: dict) -> list:
     return []
 
 
+# ── GitHub ───────────────────────────────────────────────────────────────────
+
+def _split_repo(repo: str = "") -> tuple[str, str]:
+    repo = repo or COMPOSIO_DEFAULT_REPO
+    if "/" not in repo:
+        raise ValueError("repo must be owner/repo (or set integrations."
+                         "composio.default_repo in private/*.yml)")
+    owner, name = repo.split("/", 1)
+    return owner, name
+
+
+def github_repo_stats(repo: str = "") -> str:
+    """READ — stars/forks/issues/last-push for a repo; runs immediately.
+
+    Example:
+        text = github_repo_stats("EuanSmith2/NZT-48")
+    """
+    owner, name = _split_repo(repo)
+    d = _execute("GITHUB_GET_A_REPOSITORY", {"owner": owner, "repo": name})
+    return (f"{d.get('full_name', f'{owner}/{name}')}: "
+            f"⭐ {d.get('stargazers_count', '?')} · 🍴 {d.get('forks_count', '?')} · "
+            f"🐛 {d.get('open_issues_count', '?')} open issues · "
+            f"last push {str(d.get('pushed_at', '?'))[:10]}")
+
+
+def github_create_issue(title: str, body: str = "", repo: str = "") -> dict:
+    """Stage a GitHub issue (write-gated).
+
+    Example:
+        staged = github_create_issue("bot: /drafts pagination",
+                                     "Queue >5 pending drafts truncates…")
+    """
+    owner, name = _split_repo(repo)
+    return _staged(
+        "github_create_issue", "GITHUB_CREATE_AN_ISSUE",
+        {"owner": owner, "repo": name, "title": title, "body": body},
+        f"🐙 CREATE ISSUE (github)\nrepo: {owner}/{name}\ntitle: {title}\n"
+        f"---\n{body[:600]}")
+
+
 # ── tool registry ────────────────────────────────────────────────────────────
 # name → (function, "read"|"write"). Agents request tools by these names in
 # the envelope's "actions" list; anything not in here is refused.
@@ -284,6 +324,9 @@ def _register(name: str, fn, kind: str, slug: str = ""):
 _register("calendar_create_event", calendar_create_event, "write",
           "GOOGLECALENDAR_CREATE_EVENT")
 _register("calendar_list_events", calendar_list_events, "read")
+_register("github_repo_stats", github_repo_stats, "read")
+_register("github_create_issue", github_create_issue, "write",
+          "GITHUB_CREATE_AN_ISSUE")
 _register("hubspot_create_contact", hubspot_create_contact, "write",
           "HUBSPOT_CREATE_CONTACT_OBJECT_WITH_PROPERTIES")
 _register("hubspot_log_note", hubspot_log_note, "write",

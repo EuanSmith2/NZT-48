@@ -18,3 +18,5 @@ whisper_cache/
 *.png
 !assets/*.png
 private/
+CLAUDE.md
+HARDENING-REVIEW.md

@@ -28,6 +28,7 @@ SLASH_MAP = {
     "chrome": ("SYSTEM", 1, None),
     "mockup": ("SYSTEM", 1, None),
     "video": ("SYSTEM", 1, None),
+    "devils": ("DEVILS", 2, None),
 }
 
 AGENT_FOR_INTENT = {
@@ -101,12 +102,28 @@ def classify(message: str, is_command: bool = False, command: str = "") -> dict:
 
     # Stage 1.5: short conversational messages have no classifiable intent —
     # skip Stage 2 entirely and send straight to CHAT to save one cc cold-start.
+    # score matters here: score<=LOCAL_MAX_SHORT_SCORE routes to the local
+    # tier, which has NO tool access and a stripped-down context (no hot
+    # cache, no warm retrieval, last 2 turns only). Only genuine
+    # acknowledgments with zero informational content are safe there — any
+    # short message that's actually SAYING something (a comment, a "stop"
+    # mid-task, a one-liner about real life) needs the cc tier's full
+    # context and voice, even though it's still trivially CHAT-classified.
     INTENT_KEYWORDS = re.compile(
         r"\b(research|find|look up|search|remind|remember|note|save|log|task|"
         r"brief|study|learn|lead|pipeline|prep|call|meeting|price|cost|"
         r"schedule|plan|write|draft|email|message|dm)\b", re.I)
+    TRIVIAL_ACK = re.compile(
+        r"^(ok(ay)?|thanks?|thank you|ta|stop|no|nope|yes|yeah|yep|nvm|"
+        r"never ?mind|lol+|ha+|cool|nice|got it|sounds good|sure|k|"
+        r"hi|hey|hello|sup)[.!?]*$", re.I)
     if len(message.split()) <= 8 and not INTENT_KEYWORDS.search(message):
-        return _finish("CHAT", 1, 0.9, "short-message fast-path")
+        stripped = message.strip()
+        if TRIVIAL_ACK.match(stripped):
+            return _finish("CHAT", 1, 0.9, "short-message fast-path (trivial ack)")
+        # still CHAT, still skips stage-2 — but score 2 keeps it off the
+        # local tier so it gets real context and the cc-tier voice.
+        return _finish("CHAT", 2, 0.9, "short-message fast-path (substantive)")
 
     # Stage 2: local classifier first when enabled (sub-second, free) —
     # classification is the latency-critical JSON case a small model handles

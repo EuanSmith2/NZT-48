@@ -116,6 +116,10 @@ PROMPTS = NZT / "prompts"
 LOCAL_ENABLED = bool(_local.get("enabled", False))
 MODEL_LOCAL = _local.get("model", "nzt-lite")
 LOCAL_MAX_SHORT_SCORE = int(_local.get("max_short_score", 1))
+
+# /devils — dual-opinion advisor (diplomat via cc, machiavelli via local Ollama)
+DEVILS_ADVOCATE_ENABLED = True
+MODEL_DEVILS = "machiavelli"
 CC_MAIN = _cloud.get("main", "sonnet")     # claude -p model aliases
 CC_CHEAP = _cloud.get("cheap", "haiku")
 MODEL_CHEAP = "claude-haiku-4-5-20251001"  # API-fallback ids (claude_client)

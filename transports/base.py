@@ -85,6 +85,9 @@ def handle_message(message: str, send: Send, untrusted: bool = False) -> None:
 
     if route.get("queue"):
         reply = cc_client.queue_task(message, route["reason"])
+    elif route["intent"] == "DEVILS":
+        import devils_advocate
+        reply = devils_advocate.run(message, context)
     elif agent:
         try:
             env = agents.run(agent, message, context, tier, "", untrusted, persona)

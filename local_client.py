@@ -46,14 +46,18 @@ def ollama_up() -> bool:
 
 
 def generate(prompt: str, system: str | None = None, max_tokens: int = 400,
-             json_mode: bool = False, timeout: int = 60) -> str:
+             json_mode: bool = False, timeout: int = 60,
+             model: str | None = None) -> str:
     """Blocking local generation. Caller must have decided thermal is OK.
-    Raises RuntimeError on failure so the fallback chain (A.7) can act."""
+    Raises RuntimeError on failure so the fallback chain (A.7) can act.
+    model overrides MODEL_LOCAL for one-off calls to a different local
+    persona (e.g. /devils calling "machiavelli" instead of the router's
+    classifier model)."""
     if not state.acquire_lock("ollama", wait_s=30):
         raise RuntimeError("backend lock timeout")
     try:
         body = {
-            "model": MODEL_LOCAL,
+            "model": model or MODEL_LOCAL,
             "prompt": prompt,
             "stream": False,
             "options": {"temperature": 0.4, "num_predict": max_tokens},
